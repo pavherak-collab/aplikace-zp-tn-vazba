@@ -83,34 +83,34 @@
   --card-foreground: 20 14% 4%;
   --card-border: 34 30% 90%;
   
-  --sidebar: 34 100% 97%;
-  --sidebar-foreground: 20 14% 4%;
-  --sidebar-border: 34 30% 85%;
-  --sidebar-primary: 25 95% 53%;
+  --sidebar: 88 60% 97%;
+  --sidebar-foreground: 100 14% 4%;
+  --sidebar-border: 88 30% 85%;
+  --sidebar-primary: 87 55% 42%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 40 100% 90%;
-  --sidebar-accent-foreground: 25 95% 45%;
-  --sidebar-ring: 25 95% 53%;
+  --sidebar-accent: 88 60% 90%;
+  --sidebar-accent-foreground: 87 55% 35%;
+  --sidebar-ring: 87 55% 42%;
   
   --popover: 0 0% 100%;
-  --popover-foreground: 20 14% 4%;
-  --popover-border: 34 30% 85%;
+  --popover-foreground: 100 14% 4%;
+  --popover-border: 88 30% 85%;
   
-  --primary: 25 95% 53%;
+  --primary: 87 55% 42%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 40 100% 90%;
-  --secondary-foreground: 25 95% 40%;
-  --muted: 34 20% 92%;
-  --muted-foreground: 20 10% 45%;
-  --accent: 40 100% 90%;
-  --accent-foreground: 25 95% 40%;
+  --secondary: 88 60% 90%;
+  --secondary-foreground: 87 55% 35%;
+  --muted: 88 20% 92%;
+  --muted-foreground: 100 10% 45%;
+  --accent: 88 60% 90%;
+  --accent-foreground: 87 55% 35%;
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
   
-  --input: 34 30% 85%;
-  --ring: 25 95% 53%;
+  --input: 88 30% 85%;
+  --ring: 87 55% 42%;
   
-  --chart-1: 25 95% 53%;
+  --chart-1: 87 55% 42%;
   --chart-2: 45 93% 47%;
   --chart-3: 142 71% 45%;
   --chart-4: 0 84% 60%;
@@ -139,17 +139,17 @@
   --popover-foreground: 34 100% 97%;
   --popover-border: 20 10% 15%;
   
-  --primary: 25 95% 53%;
+  --primary: 87 55% 42%;
   --primary-foreground: 0 0% 100%;
   --secondary: 20 10% 15%;
-  --secondary-foreground: 34 100% 97%;
+  --secondary-foreground: 88 60% 90%;
   --muted: 20 10% 12%;
-  --muted-foreground: 34 20% 70%;
+  --muted-foreground: 88 20% 70%;
   --accent: 20 10% 15%;
-  --accent-foreground: 34 100% 97%;
+  --accent-foreground: 88 60% 90%;
   
   --input: 20 10% 15%;
-  --ring: 25 95% 53%;
+  --ring: 87 55% 42%;
 }
 
 @layer base {

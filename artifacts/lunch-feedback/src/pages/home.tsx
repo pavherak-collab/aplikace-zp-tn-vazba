@@ -92,11 +92,10 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen w-full flex flex-col items-center justify-center bg-background p-4 sm:p-8 relative overflow-hidden">
-      <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full bg-secondary opacity-60 blur-3xl pointer-events-none"></div>
-      <div className="absolute bottom-[-10%] right-[-10%] w-[400px] h-[400px] rounded-full bg-primary/10 blur-3xl pointer-events-none"></div>
+    <div className="min-h-screen w-full flex flex-col items-center justify-center p-4 sm:p-8 relative overflow-hidden" style={{ backgroundImage: "url('/background.png')", backgroundSize: "cover", backgroundPosition: "center", backgroundRepeat: "no-repeat" }}>
+      <div className="absolute inset-0 bg-white/30 pointer-events-none"></div>
 
-      <div className="w-full max-w-lg z-10">
+      <div className="w-full max-w-lg z-10 relative">
         <div className="text-center mb-10">
           <h1 className="text-4xl sm:text-5xl font-extrabold text-foreground tracking-tight mb-3" data-testid="text-main-title">
             Jaký byl dnešní <span className="text-primary">oběd?</span>

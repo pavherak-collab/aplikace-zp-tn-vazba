@@ -9,7 +9,7 @@ import { Link } from "wouter";
 import { format } from "date-fns";
 import { cs } from "date-fns/locale";
 import { ArrowLeft, ChefHat, Frown, Meh, Smile } from "lucide-react";
-import { FeedbackRating } from "@workspace/api-client-react/src/generated/api.schemas";
+import { FeedbackRating } from "@workspace/api-client-react";
 
 export default function Admin() {
   const { data: stats, isLoading: isLoadingStats } = useGetFeedbackStats();
@@ -40,7 +40,7 @@ export default function Admin() {
   })) || [];
 
   return (
-    <div className="min-h-screen bg-background pb-12">
+    <div className="min-h-screen pb-12" style={{ backgroundImage: "url('/background.png')", backgroundSize: "cover", backgroundPosition: "center", backgroundRepeat: "no-repeat" }}>
       <header className="bg-card border-b sticky top-0 z-30">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-4">

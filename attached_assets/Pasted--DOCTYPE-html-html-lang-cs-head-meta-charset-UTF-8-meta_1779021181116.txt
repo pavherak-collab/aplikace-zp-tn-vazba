@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zpětná vazba na školní obědy</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      display: flex;
+      justify-content: center;
+      padding: 40px;
+    }
+
+    .container {
+      background: white;
+      padding: 25px;
+      border-radius: 15px;
+      width: 400px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 15px;
+    }
+
+    select, textarea, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 8px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 15px;
+    }
+
+    textarea {
+      resize: vertical;
+      height: 100px;
+    }
+
+    button {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+      margin-top: 20px;
+    }
+
+    button:hover {
+      background: #45a049;
+    }
+
+    .message {
+      margin-top: 20px;
+      text-align: center;
+      color: green;
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+    <h1>Zpětná vazba na obědy</h1>
+
+    <label for="meal">Vyber oběd:</label>
+    <select id="meal">
+      <option>Oběd 1</option>
+      <option>Oběd 2</option>
+    </select>
+
+    <label for="rating">Jak ti chutnal?</label>
+    <select id="rating">
+      <option>Dal bych si znovu</option>
+      <option>Bylo to průměrné</option>
+      <option>Už bych si nedal</option>
+    </select>
+
+    <label for="feedback">Vlastní zpětná vazba:</label>
+    <textarea id="feedback" placeholder="Napiš svůj názor..."></textarea>
+
+    <button onclick="submitFeedback()">Odeslat</button>
+
+    <div class="message" id="message"></div>
+  </div>
+
+  <script>
+    function submitFeedback() {
+      const meal = document.getElementById("meal").value;
+      const rating = document.getElementById("rating").value;
+      const feedback = document.getElementById("feedback").value;
+
+      console.log("Oběd:", meal);
+      console.log("Hodnocení:", rating);
+      console.log("Komentář:", feedback);
+
+      document.getElementById("message").innerText =
+        "Děkujeme za zpětnou vazbu!";
+    }
+  </script>
+
+</body>
+</html>

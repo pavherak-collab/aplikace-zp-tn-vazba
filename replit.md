@@ -1,6 +1,6 @@
-# [Project name]
+# Zpětná vazba na školní obědy
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+A Czech school lunch feedback app where students rate their daily meals, with an admin dashboard showing aggregate stats.
 
 ## Run & Operate
 
@@ -19,18 +19,27 @@ _Replace the heading above with the project's name, and this line with one sente
 - Validation: Zod (`zod/v4`), `drizzle-zod`
 - API codegen: Orval (from OpenAPI spec)
 - Build: esbuild (CJS bundle)
+- Frontend: React + Vite, Tailwind CSS, shadcn/ui, wouter, TanStack Query
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `lib/api-spec/openapi.yaml` — API contract (source of truth)
+- `lib/db/src/schema/feedback.ts` — feedback table schema
+- `artifacts/api-server/src/routes/feedback.ts` — feedback API routes
+- `artifacts/lunch-feedback/src/pages/home.tsx` — student feedback form
+- `artifacts/lunch-feedback/src/pages/admin.tsx` — admin dashboard
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- OpenAPI-first: all API contracts defined in `lib/api-spec/openapi.yaml`, types generated via Orval
+- Meal IDs are lowercase/no-diacritics internally (`obed1`, `obed2`) but displayed as "Oběd 1" / "Oběd 2" in the UI
+- Rating values are enum strings: `positive`, `neutral`, `negative`
+- Stats aggregated server-side via SQL COUNT with FILTER clauses for efficiency
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- **Feedback form** (`/`) — students pick their meal (Oběd 1 or 2), rate it with a face icon (positive/neutral/negative), and optionally leave a text comment
+- **Admin dashboard** (`/admin`) — shows all submitted feedback in a list plus visual stats comparing ratings across meals
 
 ## User preferences
 
@@ -38,7 +47,8 @@ _Populate as you build — explicit user instructions worth remembering across s
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- After changing `lib/db/src/schema/`, run `pnpm run typecheck:libs` before typechecking the api-server, otherwise feedbackTable won't be in the db exports
+- After each OpenAPI spec change, re-run codegen before using the updated types
 
 ## Pointers
 

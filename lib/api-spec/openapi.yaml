@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: feedback
+    description: Lunch feedback operations
 paths:
   /healthz:
     get:
@@ -24,6 +26,60 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /feedback:
+    post:
+      operationId: createFeedback
+      tags: [feedback]
+      summary: Submit lunch feedback
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateFeedbackInput"
+      responses:
+        "201":
+          description: Feedback submitted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Feedback"
+    get:
+      operationId: listFeedback
+      tags: [feedback]
+      summary: List all feedback
+      parameters:
+        - name: meal
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of feedback
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Feedback"
+
+  /feedback/stats:
+    get:
+      operationId: getFeedbackStats
+      tags: [feedback]
+      summary: Get aggregated feedback stats per meal
+      responses:
+        "200":
+          description: Stats per meal
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MealStats"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +90,60 @@ components:
       required:
         - status
 
+    CreateFeedbackInput:
+      type: object
+      properties:
+        meal:
+          type: string
+          description: "Meal identifier, e.g. 'obed1' or 'obed2'"
+        rating:
+          type: string
+          enum: [positive, neutral, negative]
+        comment:
+          type: string
+          nullable: true
+      required:
+        - meal
+        - rating
+
+    Feedback:
+      type: object
+      properties:
+        id:
+          type: integer
+        meal:
+          type: string
+        rating:
+          type: string
+          enum: [positive, neutral, negative]
+        comment:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - meal
+        - rating
+        - createdAt
+
+    MealStats:
+      type: object
+      properties:
+        meal:
+          type: string
+        positive:
+          type: integer
+        neutral:
+          type: integer
+        negative:
+          type: integer
+        total:
+          type: integer
+      required:
+        - meal
+        - positive
+        - neutral
+        - negative
+        - total

@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Zpětná vazba na obědy"
+version = "1.0.0"
+id = "artifacts/lunch-feedback"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 19510
+
+[services.development]
+run = "pnpm --filter @workspace/lunch-feedback run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/lunch-feedback", "run", "build" ]
+publicDir = "artifacts/lunch-feedback/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "19510"
+BASE_PATH = "/"

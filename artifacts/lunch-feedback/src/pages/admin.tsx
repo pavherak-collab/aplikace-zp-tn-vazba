@@ -9,7 +9,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
 import { Link } from "wouter";
 import { format } from "date-fns";
 import { cs } from "date-fns/locale";
-import { ArrowLeft, ChefHat, Frown, Meh, Smile } from "lucide-react";
+import { ArrowLeft, ChefHat, Frown, Meh, Smile, LogOut } from "lucide-react";
 import { FeedbackRating } from "@workspace/api-client-react";
 
 export default function Admin() {
@@ -56,6 +56,17 @@ export default function Admin() {
               <h1 className="font-bold text-lg" data-testid="text-admin-title">Přehled obědů</h1>
             </div>
           </div>
+          <button
+            onClick={() => {
+              sessionStorage.removeItem("admin_unlocked");
+              window.location.reload();
+            }}
+            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-destructive transition-colors"
+            data-testid="button-logout"
+          >
+            <LogOut className="w-4 h-4" />
+            Odhlásit
+          </button>
         </div>
       </header>
 

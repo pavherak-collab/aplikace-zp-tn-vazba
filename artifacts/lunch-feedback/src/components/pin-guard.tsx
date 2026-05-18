@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Delete } from "lucide-react";
 
-const ADMIN_PIN = "1234";
+const ADMIN_PIN = "123456";
 const SESSION_KEY = "admin_unlocked";
 
 interface PinGuardProps {
@@ -22,12 +22,12 @@ export default function PinGuard({ children }: PinGuardProps) {
   }
 
   function press(digit: string) {
-    if (entered.length >= 4) return;
+    if (entered.length >= 6) return;
     const next = entered + digit;
     setEntered(next);
     setError(false);
 
-    if (next.length === 4) {
+    if (next.length === 6) {
       if (next === ADMIN_PIN) {
         sessionStorage.setItem(SESSION_KEY, "true");
         setUnlocked(true);
@@ -68,7 +68,7 @@ export default function PinGuard({ children }: PinGuardProps) {
           </div>
 
           <div className="flex gap-3" data-testid="pin-dots">
-            {[0, 1, 2, 3].map((i) => (
+            {[0, 1, 2, 3, 4, 5].map((i) => (
               <div
                 key={i}
                 className={`w-4 h-4 rounded-full border-2 transition-all duration-150 ${

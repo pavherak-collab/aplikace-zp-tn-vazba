@@ -1,4 +1,5 @@
 import { useListFeedback, useGetFeedbackStats } from "@workspace/api-client-react";
+import PinGuard from "@/components/pin-guard";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -40,6 +41,7 @@ export default function Admin() {
   })) || [];
 
   return (
+    <PinGuard>
     <div className="min-h-screen pb-12" style={{ backgroundImage: "url('/background.png')", backgroundSize: "cover", backgroundPosition: "center", backgroundRepeat: "no-repeat" }}>
       <header className="bg-card border-b sticky top-0 z-30">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
@@ -193,5 +195,6 @@ export default function Admin() {
 
       </main>
     </div>
+    </PinGuard>
   );
 }

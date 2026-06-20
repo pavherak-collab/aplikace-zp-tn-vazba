@@ -30,12 +30,15 @@ export default function Home() {
   const today = new Date().toISOString().split("T")[0];
   const { data: menus } = useGetMenus({ date: today });
 
-  const getMealName = (mealType: "obed1" | "obed2") => {
-    const item = menus?.find((m) => m.mealType === mealType);
-    return item ? item.name : mealType === "obed1" ? "Oběd 1" : "Oběd 2";
+  const SERVING_TIMES: Record<string, string> = {
+    obed1: "Výdej 11:00 – 12:00",
+    obed2: "Výdej 12:00 – 13:00",
   };
 
-  const hasTodayMenu = menus && menus.length > 0;
+  const getMealSubtext = (mealType: "obed1" | "obed2"): string => {
+    const item = menus?.find((m) => m.mealType === mealType);
+    return item ? item.name : SERVING_TIMES[mealType];
+  };
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -123,41 +126,61 @@ export default function Home() {
                   control={form.control}
                   name="meal"
                   render={({ field }) => (
-                    <FormItem className="space-y-4">
+                    <FormItem className="space-y-3">
                       <FormLabel className="text-lg font-semibold text-foreground">Který oběd jsi měl/a?</FormLabel>
                       <FormControl>
                         <RadioGroup
                           onValueChange={field.onChange}
                           defaultValue={field.value}
-                          className="grid grid-cols-2 gap-4"
+                          className="flex flex-col gap-3"
                           data-testid="input-meal"
                         >
-                          <FormItem>
-                            <FormControl>
-                              <div className="relative">
-                                <RadioGroupItem value="obed1" id="obed1" className="peer sr-only" />
-                                <Label htmlFor="obed1" className="flex flex-col items-center justify-center rounded-xl border-2 border-muted bg-card p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 [&:has([data-state=checked])]:border-primary transition-all cursor-pointer min-h-[80px]">
-                                  <span className="text-base font-bold mb-1" data-testid="label-obed1">Oběd 1</span>
-                                  {hasTodayMenu && (
-                                    <span className="text-xs text-center text-muted-foreground leading-tight line-clamp-2">{getMealName("obed1")}</span>
-                                  )}
-                                </Label>
-                              </div>
-                            </FormControl>
-                          </FormItem>
-                          <FormItem>
-                            <FormControl>
-                              <div className="relative">
-                                <RadioGroupItem value="obed2" id="obed2" className="peer sr-only" />
-                                <Label htmlFor="obed2" className="flex flex-col items-center justify-center rounded-xl border-2 border-muted bg-card p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 [&:has([data-state=checked])]:border-primary transition-all cursor-pointer min-h-[80px]">
-                                  <span className="text-base font-bold mb-1" data-testid="label-obed2">Oběd 2</span>
-                                  {hasTodayMenu && (
-                                    <span className="text-xs text-center text-muted-foreground leading-tight line-clamp-2">{getMealName("obed2")}</span>
-                                  )}
-                                </Label>
-                              </div>
-                            </FormControl>
-                          </FormItem>
+                          {(["obed1", "obed2"] as const).map((mealType) => {
+                            const num = mealType === "obed1" ? "1" : "2";
+                            const label = mealType === "obed1" ? "Oběd 1" : "Oběd 2";
+                            const subtext = getMealSubtext(mealType);
+                            const hasRealMenu = menus?.some((m) => m.mealType === mealType);
+                            const isSelected = field.value === mealType;
+                            return (
+                              <FormItem key={mealType}>
+                                <FormControl>
+                                  <div className="relative">
+                                    <RadioGroupItem value={mealType} id={mealType} className="sr-only" />
+                                    <Label
+                                      htmlFor={mealType}
+                                      className={`flex items-center gap-4 rounded-xl border-2 px-4 py-3.5 transition-all cursor-pointer ${
+                                        isSelected
+                                          ? "border-primary bg-primary/5"
+                                          : "border-muted bg-card hover:border-primary/40 hover:bg-primary/5"
+                                      }`}
+                                    >
+                                      <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 text-lg font-extrabold transition-colors ${
+                                        isSelected ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"
+                                      }`}>
+                                        {num}
+                                      </div>
+                                      <div className="flex-1 min-w-0">
+                                        <div
+                                          className="font-bold text-foreground text-base leading-tight"
+                                          data-testid={`label-${mealType}`}
+                                        >
+                                          {label}
+                                        </div>
+                                        <div className={`text-sm mt-0.5 leading-snug ${hasRealMenu ? "text-foreground/70" : "text-muted-foreground italic"}`}>
+                                          {subtext}
+                                        </div>
+                                      </div>
+                                      <div className={`w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-colors ${
+                                        isSelected ? "border-primary" : "border-muted-foreground/40"
+                                      }`}>
+                                        {isSelected && <div className="w-2.5 h-2.5 rounded-full bg-primary" />}
+                                      </div>
+                                    </Label>
+                                  </div>
+                                </FormControl>
+                              </FormItem>
+                            );
+                          })}
                         </RadioGroup>
                       </FormControl>
                       <FormMessage />

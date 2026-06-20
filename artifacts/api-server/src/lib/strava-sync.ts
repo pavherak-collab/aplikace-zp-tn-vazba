@@ -1,5 +1,5 @@
 import { parse as parseHtml } from "node-html-parser";
-import { db, menusTable } from "@workspace/db";
+import { db, menusTable, syncLogsTable } from "@workspace/db";
 import { logger } from "./logger";
 
 const STRAVA_CANTEEN_ID = 1328;

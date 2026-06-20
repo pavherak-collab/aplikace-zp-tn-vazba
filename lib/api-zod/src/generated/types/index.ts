@@ -8,6 +8,7 @@
 
 export * from './createFeedbackInput';
 export * from './createFeedbackInputRating';
+export * from './deleteResult';
 export * from './feedback';
 export * from './feedbackRating';
 export * from './getMenusParams';
@@ -17,8 +18,10 @@ export * from './mealStats';
 export * from './menuItem';
 export * from './storedMealBreakdown';
 export * from './storedWeeklyReport';
+export * from './syncLogEntry';
 export * from './syncResult';
 export * from './topComment';
+export * from './upsertMenuInput';
 export * from './weeklyReport';
 export * from './weeklyReportComment';
 export * from './weeklyReportCommentRating';

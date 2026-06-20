@@ -110,6 +110,49 @@ export const SyncMenusResponse = zod.object({
 
 
 /**
+ * @summary Get recent menu sync log entries
+ */
+export const GetMenusSyncLogResponseItem = zod.object({
+  "id": zod.number(),
+  "triggeredAt": zod.coerce.date(),
+  "source": zod.string(),
+  "synced": zod.number(),
+  "error": zod.string().nullish()
+})
+export const GetMenusSyncLogResponse = zod.array(GetMenusSyncLogResponseItem)
+
+
+/**
+ * @summary Delete a menu item by ID
+ */
+export const DeleteMenuParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const DeleteMenuResponse = zod.object({
+  "success": zod.boolean()
+})
+
+
+/**
+ * @summary Manually create or update a menu item
+ */
+export const UpsertMenuBody = zod.object({
+  "date": zod.string(),
+  "mealType": zod.string(),
+  "name": zod.string()
+})
+
+export const UpsertMenuResponse = zod.object({
+  "id": zod.number(),
+  "date": zod.string(),
+  "mealType": zod.string(),
+  "name": zod.string(),
+  "syncedAt": zod.coerce.date()
+})
+
+
+/**
  * @summary List all stored weekly reports
  */
 export const ListWeeklyReportsResponseItem = zod.object({

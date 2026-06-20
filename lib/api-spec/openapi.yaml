@@ -132,6 +132,61 @@ paths:
               schema:
                 $ref: "#/components/schemas/SyncResult"
 
+  /menus/sync-log:
+    get:
+      operationId: getMenusSyncLog
+      tags: [menus]
+      summary: Get recent menu sync log entries
+      responses:
+        "200":
+          description: Recent sync log entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SyncLogEntry"
+
+  /menus/{id}:
+    delete:
+      operationId: deleteMenu
+      tags: [menus]
+      summary: Delete a menu item by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResult"
+        "404":
+          description: Menu item not found
+
+  /menus/upsert:
+    post:
+      operationId: upsertMenu
+      tags: [menus]
+      summary: Manually create or update a menu item
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpsertMenuInput"
+      responses:
+        "200":
+          description: Created or updated menu item
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MenuItem"
+
   /reports/weekly:
     get:
       operationId: listWeeklyReports
@@ -347,6 +402,49 @@ components:
         - neutral
         - negative
         - total
+
+    SyncLogEntry:
+      type: object
+      properties:
+        id:
+          type: integer
+        triggeredAt:
+          type: string
+          format: date-time
+        source:
+          type: string
+        synced:
+          type: integer
+        error:
+          type: string
+          nullable: true
+      required:
+        - id
+        - triggeredAt
+        - source
+        - synced
+
+    UpsertMenuInput:
+      type: object
+      properties:
+        date:
+          type: string
+        mealType:
+          type: string
+        name:
+          type: string
+      required:
+        - date
+        - mealType
+        - name
+
+    DeleteResult:
+      type: object
+      properties:
+        success:
+          type: boolean
+      required:
+        - success
 
     StoredWeeklyReport:
       type: object

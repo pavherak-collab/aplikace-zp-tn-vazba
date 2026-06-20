@@ -104,6 +104,24 @@ export interface StoredMealBreakdown {
   total: number;
 }
 
+export interface SyncLogEntry {
+  id: number;
+  triggeredAt: string;
+  source: string;
+  synced: number;
+  error?: string | null;
+}
+
+export interface UpsertMenuInput {
+  date: string;
+  mealType: string;
+  name: string;
+}
+
+export interface DeleteResult {
+  success: boolean;
+}
+
 export interface StoredWeeklyReport {
   id: number;
   weekStart: string;

@@ -83,3 +83,86 @@ export const GetFeedbackStatsResponseItem = zod.object({
 export const GetFeedbackStatsResponse = zod.array(GetFeedbackStatsResponseItem)
 
 
+/**
+ * @summary Get meal menus for a specific date
+ */
+export const GetMenusQueryParams = zod.object({
+  "date": zod.coerce.string().optional().describe('Date in YYYY-MM-DD format, defaults to today')
+})
+
+export const GetMenusResponseItem = zod.object({
+  "id": zod.number(),
+  "date": zod.string(),
+  "mealType": zod.string(),
+  "name": zod.string(),
+  "syncedAt": zod.coerce.date()
+})
+export const GetMenusResponse = zod.array(GetMenusResponseItem)
+
+
+/**
+ * @summary Trigger menu sync from Strava.cz
+ */
+export const SyncMenusResponse = zod.object({
+  "synced": zod.number(),
+  "message": zod.string()
+})
+
+
+/**
+ * @summary List all stored weekly reports
+ */
+export const ListWeeklyReportsResponseItem = zod.object({
+  "id": zod.number(),
+  "weekStart": zod.string(),
+  "totalFeedback": zod.number(),
+  "positiveCount": zod.number(),
+  "neutralCount": zod.number(),
+  "negativeCount": zod.number(),
+  "bestMeal": zod.string().nullish(),
+  "worstMeal": zod.string().nullish(),
+  "topComments": zod.array(zod.object({
+  "text": zod.string(),
+  "count": zod.number(),
+  "meal": zod.string()
+})),
+  "mealBreakdown": zod.array(zod.object({
+  "meal": zod.string(),
+  "positive": zod.number(),
+  "neutral": zod.number(),
+  "negative": zod.number(),
+  "total": zod.number()
+})),
+  "generatedAt": zod.coerce.date()
+})
+export const ListWeeklyReportsResponse = zod.array(ListWeeklyReportsResponseItem)
+
+
+/**
+ * @summary Manually trigger weekly report generation for current week
+ */
+export const GenerateWeeklyReportResponse = zod.object({
+  "id": zod.number(),
+  "weekStart": zod.string(),
+  "totalFeedback": zod.number(),
+  "positiveCount": zod.number(),
+  "neutralCount": zod.number(),
+  "negativeCount": zod.number(),
+  "bestMeal": zod.string().nullish(),
+  "worstMeal": zod.string().nullish(),
+  "topComments": zod.array(zod.object({
+  "text": zod.string(),
+  "count": zod.number(),
+  "meal": zod.string()
+})),
+  "mealBreakdown": zod.array(zod.object({
+  "meal": zod.string(),
+  "positive": zod.number(),
+  "neutral": zod.number(),
+  "negative": zod.number(),
+  "total": zod.number()
+})),
+  "generatedAt": zod.coerce.date()
+})
+
+

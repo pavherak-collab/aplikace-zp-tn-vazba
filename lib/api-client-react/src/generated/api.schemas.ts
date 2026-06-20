@@ -77,7 +77,55 @@ export interface WeeklyReport {
   mealBreakdown: MealStats[];
 }
 
+export interface MenuItem {
+  id: number;
+  date: string;
+  mealType: string;
+  name: string;
+  syncedAt: string;
+}
+
+export interface SyncResult {
+  synced: number;
+  message: string;
+}
+
+export interface TopComment {
+  text: string;
+  count: number;
+  meal: string;
+}
+
+export interface StoredMealBreakdown {
+  meal: string;
+  positive: number;
+  neutral: number;
+  negative: number;
+  total: number;
+}
+
+export interface StoredWeeklyReport {
+  id: number;
+  weekStart: string;
+  totalFeedback: number;
+  positiveCount: number;
+  neutralCount: number;
+  negativeCount: number;
+  bestMeal?: string | null;
+  worstMeal?: string | null;
+  topComments: TopComment[];
+  mealBreakdown: StoredMealBreakdown[];
+  generatedAt: string;
+}
+
 export type ListFeedbackParams = {
 meal?: string;
+};
+
+export type GetMenusParams = {
+/**
+ * Date in YYYY-MM-DD format, defaults to today
+ */
+date?: string;
 };
 

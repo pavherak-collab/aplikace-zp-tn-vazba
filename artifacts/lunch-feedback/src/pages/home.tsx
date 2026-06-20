@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useCreateFeedback } from "@workspace/api-client-react";
+import { useCreateFeedback, useGetMenus } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -27,6 +27,15 @@ export default function Home() {
   const [submitted, setSubmitted] = useState(false);
   const { toast } = useToast();
   const createFeedback = useCreateFeedback();
+  const today = new Date().toISOString().split("T")[0];
+  const { data: menus } = useGetMenus({ date: today });
+
+  const getMealName = (mealType: "obed1" | "obed2") => {
+    const item = menus?.find((m) => m.mealType === mealType);
+    return item ? item.name : mealType === "obed1" ? "Oběd 1" : "Oběd 2";
+  };
+
+  const hasTodayMenu = menus && menus.length > 0;
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -127,8 +136,11 @@ export default function Home() {
                             <FormControl>
                               <div className="relative">
                                 <RadioGroupItem value="obed1" id="obed1" className="peer sr-only" />
-                                <Label htmlFor="obed1" className="flex flex-col items-center justify-center rounded-xl border-2 border-muted bg-card p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 [&:has([data-state=checked])]:border-primary transition-all cursor-pointer">
-                                  <span className="text-xl font-bold" data-testid="label-obed1">Oběd 1</span>
+                                <Label htmlFor="obed1" className="flex flex-col items-center justify-center rounded-xl border-2 border-muted bg-card p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 [&:has([data-state=checked])]:border-primary transition-all cursor-pointer min-h-[80px]">
+                                  <span className="text-base font-bold mb-1" data-testid="label-obed1">Oběd 1</span>
+                                  {hasTodayMenu && (
+                                    <span className="text-xs text-center text-muted-foreground leading-tight line-clamp-2">{getMealName("obed1")}</span>
+                                  )}
                                 </Label>
                               </div>
                             </FormControl>
@@ -137,8 +149,11 @@ export default function Home() {
                             <FormControl>
                               <div className="relative">
                                 <RadioGroupItem value="obed2" id="obed2" className="peer sr-only" />
-                                <Label htmlFor="obed2" className="flex flex-col items-center justify-center rounded-xl border-2 border-muted bg-card p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 [&:has([data-state=checked])]:border-primary transition-all cursor-pointer">
-                                  <span className="text-xl font-bold" data-testid="label-obed2">Oběd 2</span>
+                                <Label htmlFor="obed2" className="flex flex-col items-center justify-center rounded-xl border-2 border-muted bg-card p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 [&:has([data-state=checked])]:border-primary transition-all cursor-pointer min-h-[80px]">
+                                  <span className="text-base font-bold mb-1" data-testid="label-obed2">Oběd 2</span>
+                                  {hasTodayMenu && (
+                                    <span className="text-xs text-center text-muted-foreground leading-tight line-clamp-2">{getMealName("obed2")}</span>
+                                  )}
                                 </Label>
                               </div>
                             </FormControl>

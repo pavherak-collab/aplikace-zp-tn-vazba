@@ -22,9 +22,13 @@ import type {
 import type {
   CreateFeedbackInput,
   Feedback,
+  GetMenusParams,
   HealthStatus,
   ListFeedbackParams,
   MealStats,
+  MenuItem,
+  StoredWeeklyReport,
+  SyncResult,
   WeeklyReport
 } from './api.schemas';
 
@@ -426,4 +430,305 @@ export function useGetFeedbackStats<TData = Awaited<ReturnType<typeof getFeedbac
 
 
 
+
+export const getGetMenusUrl = (params?: GetMenusParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/menus?${stringifiedParams}` : `/api/menus`
+}
+
+/**
+ * @summary Get meal menus for a specific date
+ */
+export const getMenus = async (params?: GetMenusParams, options?: RequestInit): Promise<MenuItem[]> => {
+
+  return customFetch<MenuItem[]>(getGetMenusUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetMenusQueryKey = (params?: GetMenusParams,) => {
+    return [
+    `/api/menus`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetMenusQueryOptions = <TData = Awaited<ReturnType<typeof getMenus>>, TError = ErrorType<unknown>>(params?: GetMenusParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMenus>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMenusQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMenus>>> = ({ signal }) => getMenus(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMenus>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetMenusQueryResult = NonNullable<Awaited<ReturnType<typeof getMenus>>>
+export type GetMenusQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get meal menus for a specific date
+ */
+
+export function useGetMenus<TData = Awaited<ReturnType<typeof getMenus>>, TError = ErrorType<unknown>>(
+ params?: GetMenusParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMenus>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetMenusQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getSyncMenusUrl = () => {
+
+
+
+
+  return `/api/menus/sync`
+}
+
+/**
+ * @summary Trigger menu sync from Strava.cz
+ */
+export const syncMenus = async ( options?: RequestInit): Promise<SyncResult> => {
+
+  return customFetch<SyncResult>(getSyncMenusUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getSyncMenusMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof syncMenus>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof syncMenus>>, TError,void, TContext> => {
+
+const mutationKey = ['syncMenus'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof syncMenus>>, void> = () => {
+
+
+          return  syncMenus(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SyncMenusMutationResult = NonNullable<Awaited<ReturnType<typeof syncMenus>>>
+
+    export type SyncMenusMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Trigger menu sync from Strava.cz
+ */
+export const useSyncMenus = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof syncMenus>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof syncMenus>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getSyncMenusMutationOptions(options));
+    }
+
+export const getListWeeklyReportsUrl = () => {
+
+
+
+
+  return `/api/reports/weekly`
+}
+
+/**
+ * @summary List all stored weekly reports
+ */
+export const listWeeklyReports = async ( options?: RequestInit): Promise<StoredWeeklyReport[]> => {
+
+  return customFetch<StoredWeeklyReport[]>(getListWeeklyReportsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListWeeklyReportsQueryKey = () => {
+    return [
+    `/api/reports/weekly`
+    ] as const;
+    }
+
+
+export const getListWeeklyReportsQueryOptions = <TData = Awaited<ReturnType<typeof listWeeklyReports>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listWeeklyReports>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListWeeklyReportsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listWeeklyReports>>> = ({ signal }) => listWeeklyReports({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listWeeklyReports>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListWeeklyReportsQueryResult = NonNullable<Awaited<ReturnType<typeof listWeeklyReports>>>
+export type ListWeeklyReportsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List all stored weekly reports
+ */
+
+export function useListWeeklyReports<TData = Awaited<ReturnType<typeof listWeeklyReports>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listWeeklyReports>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListWeeklyReportsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGenerateWeeklyReportUrl = () => {
+
+
+
+
+  return `/api/reports/weekly/generate`
+}
+
+/**
+ * @summary Manually trigger weekly report generation for current week
+ */
+export const generateWeeklyReport = async ( options?: RequestInit): Promise<StoredWeeklyReport> => {
+
+  return customFetch<StoredWeeklyReport>(getGenerateWeeklyReportUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getGenerateWeeklyReportMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateWeeklyReport>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof generateWeeklyReport>>, TError,void, TContext> => {
+
+const mutationKey = ['generateWeeklyReport'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof generateWeeklyReport>>, void> = () => {
+
+
+          return  generateWeeklyReport(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type GenerateWeeklyReportMutationResult = NonNullable<Awaited<ReturnType<typeof generateWeeklyReport>>>
+
+    export type GenerateWeeklyReportMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Manually trigger weekly report generation for current week
+ */
+export const useGenerateWeeklyReport = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateWeeklyReport>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof generateWeeklyReport>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getGenerateWeeklyReportMutationOptions(options));
+    }
 

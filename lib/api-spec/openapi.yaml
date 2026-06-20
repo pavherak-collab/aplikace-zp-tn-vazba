@@ -12,6 +12,10 @@ tags:
     description: Health operations
   - name: feedback
     description: Lunch feedback operations
+  - name: menus
+    description: Daily meal menu operations
+  - name: reports
+    description: Weekly report operations
 paths:
   /healthz:
     get:
@@ -92,6 +96,69 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/MealStats"
+
+  /menus:
+    get:
+      operationId: getMenus
+      tags: [menus]
+      summary: Get meal menus for a specific date
+      parameters:
+        - name: date
+          in: query
+          required: false
+          description: "Date in YYYY-MM-DD format, defaults to today"
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Menu items for the date
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MenuItem"
+
+  /menus/sync:
+    post:
+      operationId: syncMenus
+      tags: [menus]
+      summary: Trigger menu sync from Strava.cz
+      responses:
+        "200":
+          description: Sync result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SyncResult"
+
+  /reports/weekly:
+    get:
+      operationId: listWeeklyReports
+      tags: [reports]
+      summary: List all stored weekly reports
+      responses:
+        "200":
+          description: List of weekly reports
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/StoredWeeklyReport"
+
+  /reports/weekly/generate:
+    post:
+      operationId: generateWeeklyReport
+      tags: [reports]
+      summary: Manually trigger weekly report generation for current week
+      responses:
+        "200":
+          description: Generated report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StoredWeeklyReport"
 
 components:
   schemas:
@@ -214,3 +281,112 @@ components:
         - neutral
         - negative
         - total
+
+    MenuItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        date:
+          type: string
+        mealType:
+          type: string
+        name:
+          type: string
+        syncedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - date
+        - mealType
+        - name
+        - syncedAt
+
+    SyncResult:
+      type: object
+      properties:
+        synced:
+          type: integer
+        message:
+          type: string
+      required:
+        - synced
+        - message
+
+    TopComment:
+      type: object
+      properties:
+        text:
+          type: string
+        count:
+          type: integer
+        meal:
+          type: string
+      required:
+        - text
+        - count
+        - meal
+
+    StoredMealBreakdown:
+      type: object
+      properties:
+        meal:
+          type: string
+        positive:
+          type: integer
+        neutral:
+          type: integer
+        negative:
+          type: integer
+        total:
+          type: integer
+      required:
+        - meal
+        - positive
+        - neutral
+        - negative
+        - total
+
+    StoredWeeklyReport:
+      type: object
+      properties:
+        id:
+          type: integer
+        weekStart:
+          type: string
+        totalFeedback:
+          type: integer
+        positiveCount:
+          type: integer
+        neutralCount:
+          type: integer
+        negativeCount:
+          type: integer
+        bestMeal:
+          type: string
+          nullable: true
+        worstMeal:
+          type: string
+          nullable: true
+        topComments:
+          type: array
+          items:
+            $ref: "#/components/schemas/TopComment"
+        mealBreakdown:
+          type: array
+          items:
+            $ref: "#/components/schemas/StoredMealBreakdown"
+        generatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - weekStart
+        - totalFeedback
+        - positiveCount
+        - neutralCount
+        - negativeCount
+        - topComments
+        - mealBreakdown
+        - generatedAt

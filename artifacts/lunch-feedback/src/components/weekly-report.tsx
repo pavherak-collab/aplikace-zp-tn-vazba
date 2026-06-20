@@ -1,14 +1,17 @@
+import { useState } from "react";
 import { useGetWeeklyReport } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import {
   PieChart, Pie, Cell, Tooltip as RechartsTooltip,
   ResponsiveContainer, Legend,
 } from "recharts";
-import { Smile, Meh, Frown, Trophy, ThumbsDown, MessageSquare, CalendarDays } from "lucide-react";
+import { Smile, Meh, Frown, Trophy, ThumbsDown, MessageSquare, CalendarDays, Download } from "lucide-react";
 import { format } from "date-fns";
 import { cs } from "date-fns/locale";
+import { generateWeeklyPdf } from "@/lib/generate-weekly-pdf";
 
 const getMealName = (meal: string) =>
   meal === "obed1" ? "Oběd 1" : meal === "obed2" ? "Oběd 2" : meal;
@@ -21,6 +24,16 @@ const RATING_COLORS = {
 
 export default function WeeklyReport() {
   const { data: report, isLoading } = useGetWeeklyReport();
+  const [downloading, setDownloading] = useState(false);
+
+  function handleDownload() {
+    if (!report) return;
+    setDownloading(true);
+    setTimeout(() => {
+      generateWeeklyPdf(report);
+      setDownloading(false);
+    }, 100);
+  }
 
   const now = new Date();
   const dayOfWeek = now.getDay();
@@ -66,6 +79,15 @@ export default function WeeklyReport() {
             <p className="text-sm text-muted-foreground">{weekLabel}</p>
           </div>
         </div>
+        <Button
+          onClick={handleDownload}
+          disabled={downloading || !report}
+          className="flex items-center gap-2 shadow-sm"
+          data-testid="button-download-pdf"
+        >
+          <Download className="w-4 h-4" />
+          {downloading ? "Generuji..." : "Stáhnout report (PDF)"}
+        </Button>
       </div>
 
       {/* KPI cards */}

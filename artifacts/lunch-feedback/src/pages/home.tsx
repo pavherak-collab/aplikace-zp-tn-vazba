@@ -30,14 +30,11 @@ export default function Home() {
   const today = new Date().toISOString().split("T")[0];
   const { data: menus } = useGetMenus({ date: today });
 
-  const SERVING_TIMES: Record<string, string> = {
-    obed1: "Výdej 11:00 – 12:00",
-    obed2: "Výdej 12:00 – 13:00",
-  };
+  const MENU_UNAVAILABLE = "Název oběda bude načten automaticky ze Strava.cz";
 
   const getMealSubtext = (mealType: "obed1" | "obed2"): string => {
     const item = menus?.find((m) => m.mealType === mealType);
-    return item ? item.name : SERVING_TIMES[mealType];
+    return item ? item.name : MENU_UNAVAILABLE;
   };
 
   const form = useForm<FormValues>({

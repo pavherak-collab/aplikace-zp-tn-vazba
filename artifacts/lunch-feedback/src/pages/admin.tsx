@@ -2,6 +2,7 @@ import { useListFeedback, useGetFeedbackStats } from "@workspace/api-client-reac
 import PinGuard from "@/components/pin-guard";
 import WeeklyReport from "@/components/weekly-report";
 import ReportHistory from "@/components/report-history";
+import MenuSync from "@/components/menu-sync";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -75,6 +76,8 @@ export default function Admin() {
       <main className="max-w-6xl mx-auto px-4 mt-8 space-y-12">
 
         <WeeklyReport />
+
+        <MenuSync />
 
         <ReportHistory />
 

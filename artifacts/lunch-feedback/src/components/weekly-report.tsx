@@ -26,13 +26,14 @@ export default function WeeklyReport() {
   const { data: report, isLoading } = useGetWeeklyReport();
   const [downloading, setDownloading] = useState(false);
 
-  function handleDownload() {
+  async function handleDownload() {
     if (!report) return;
     setDownloading(true);
-    setTimeout(() => {
-      generateWeeklyPdf(report);
+    try {
+      await generateWeeklyPdf(report);
+    } finally {
       setDownloading(false);
-    }, 100);
+    }
   }
 
   const now = new Date();

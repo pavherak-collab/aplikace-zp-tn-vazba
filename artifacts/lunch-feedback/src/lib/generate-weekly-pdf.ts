@@ -1,4 +1,5 @@
 import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 import { format } from "date-fns";
 import { cs } from "date-fns/locale";
 
@@ -20,46 +21,188 @@ interface WeeklyReportData {
 }
 
 const getMealName = (meal: string) =>
-  meal === "obed1" ? "Obed 1" : meal === "obed2" ? "Obed 2" : meal;
+  meal === "obed1" ? "Oběd 1" : meal === "obed2" ? "Oběd 2" : meal;
 
-export function generateWeeklyPdf(report: WeeklyReportData) {
-  const doc = new jsPDF({ unit: "mm", format: "a4" });
-  const pageW = doc.internal.pageSize.getWidth();
-  const margin = 20;
-  const contentW = pageW - margin * 2;
-  let y = 0;
+const getRatingLabel = (rating: string) =>
+  rating === "positive" ? "Pozitivní" : rating === "neutral" ? "Neutrální" : "Negativní";
 
-  // ── Helpers ──────────────────────────────────────────────────────────────
-  const line = (fromX: number, toX: number, atY: number, color = "#e5e7eb") => {
-    doc.setDrawColor(color);
-    doc.setLineWidth(0.3);
-    doc.line(fromX, atY, toX, atY);
-  };
+const getRatingColor = (rating: string) =>
+  rating === "positive" ? "#16a34a" : rating === "neutral" ? "#ca8a04" : "#dc2626";
 
-  const text = (
-    str: string,
-    x: number,
-    atY: number,
-    opts: { size?: number; bold?: boolean; color?: string; align?: "left" | "center" | "right" } = {}
-  ) => {
-    doc.setFontSize(opts.size ?? 10);
-    doc.setFont("helvetica", opts.bold ? "bold" : "normal");
-    doc.setTextColor(opts.color ?? "#1a1a1a");
-    doc.text(str, x, atY, { align: opts.align ?? "left" });
-  };
+const getRatingBg = (rating: string) =>
+  rating === "positive" ? "#dcfce7" : rating === "neutral" ? "#fef9c3" : "#fee2e2";
 
-  const badge = (label: string, x: number, atY: number, bgHex: string, fgHex: string) => {
-    const pad = 2.5;
-    doc.setFontSize(8);
-    doc.setFont("helvetica", "bold");
-    const w = doc.getTextWidth(label) + pad * 2;
-    doc.setFillColor(bgHex);
-    doc.roundedRect(x, atY - 4, w, 5.5, 1, 1, "F");
-    doc.setTextColor(fgHex);
-    doc.text(label, x + pad, atY);
-    return w;
-  };
+const getRatingBar = (rating: string) =>
+  rating === "positive" ? "#6abf40" : rating === "neutral" ? "#eab308" : "#ef4444";
 
+function buildReportHtml(report: WeeklyReportData, weekLabel: string, generatedAt: string): string {
+  const commentsHtml =
+    report.recentComments.length === 0
+      ? `<div style="background:#f9fafb;border-radius:8px;padding:20px;text-align:center;color:#9ca3af;font-size:13px;">
+           Tento týden zatím žádné komentáře.
+         </div>`
+      : report.recentComments
+          .map(
+            (c) => `
+          <div style="display:flex;gap:0;background:#f9fafb;border-radius:8px;overflow:hidden;border:1px solid #e5e7eb;margin-bottom:10px;">
+            <div style="width:4px;background:${getRatingBar(c.rating)};flex-shrink:0;"></div>
+            <div style="flex:1;padding:10px 14px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <span style="font-weight:700;font-size:13px;color:#1f2937;">${getMealName(c.meal)}</span>
+                  <span style="font-size:11px;font-weight:600;color:${getRatingColor(c.rating)};background:${getRatingBg(c.rating)};padding:2px 8px;border-radius:999px;">
+                    ${getRatingLabel(c.rating)}
+                  </span>
+                </div>
+                <span style="font-size:11px;color:#9ca3af;">${format(new Date(c.createdAt), "d. M. yyyy, HH:mm", { locale: cs })}</span>
+              </div>
+              <div style="font-size:13px;color:#374151;">${escapeHtml(c.comment)}</div>
+            </div>
+          </div>`
+          )
+          .join("");
+
+  const bestSection = report.bestMeal
+    ? `<div style="flex:1;background:#f0fdf4;border-radius:8px;padding:14px 16px;display:flex;align-items:center;gap:12px;">
+         <div style="width:36px;height:36px;background:#6abf40;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+           <span style="color:white;font-size:18px;line-height:1;">★</span>
+         </div>
+         <div>
+           <div style="font-size:11px;color:#6b7280;margin-bottom:2px;">Nejlépe hodnocený</div>
+           <div style="font-size:16px;font-weight:700;color:#15803d;">${getMealName(report.bestMeal)}</div>
+         </div>
+       </div>`
+    : `<div style="flex:1;"></div>`;
+
+  const worstSection = report.worstMeal
+    ? `<div style="flex:1;background:#fef2f2;border-radius:8px;padding:14px 16px;display:flex;align-items:center;gap:12px;">
+         <div style="width:36px;height:36px;background:#dc2626;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+           <span style="color:white;font-size:18px;line-height:1;">▼</span>
+         </div>
+         <div>
+           <div style="font-size:11px;color:#6b7280;margin-bottom:2px;">Nejhůře hodnocený</div>
+           <div style="font-size:16px;font-weight:700;color:#b91c1c;">${getMealName(report.worstMeal)}</div>
+         </div>
+       </div>`
+    : `<div style="flex:1;"></div>`;
+
+  return `
+    <div style="
+      font-family: system-ui, -apple-system, 'Segoe UI', Arial, sans-serif;
+      width: 794px;
+      background: white;
+      color: #1a1a1a;
+    ">
+      <!-- Header -->
+      <div style="background:#6abf40;padding:20px 30px;display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div style="font-size:18px;font-weight:700;color:white;letter-spacing:0.5px;">GYMNÁZIUM AŠ</div>
+          <div style="font-size:12px;color:#e8f5e9;margin-top:2px;">Zpětná vazba na školní obědy</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:16px;font-weight:700;color:white;">TÝDENNÍ PŘEHLED</div>
+          <div style="font-size:12px;color:#e8f5e9;margin-top:2px;">${weekLabel}</div>
+        </div>
+      </div>
+
+      <div style="padding:24px 30px;">
+
+        <!-- Generation date -->
+        <div style="font-size:11px;color:#6b7280;margin-bottom:12px;">
+          Datum vygenerování: ${generatedAt}
+        </div>
+
+        <hr style="border:none;border-top:1px solid #e5e7eb;margin-bottom:20px;">
+
+        <!-- Summary section -->
+        <div style="font-size:11px;font-weight:700;color:#6abf40;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:10px;">
+          Celkový přehled
+        </div>
+        <div style="display:flex;gap:10px;margin-bottom:24px;">
+          <div style="flex:1;background:#f0fdf4;border-radius:8px;padding:14px;text-align:center;">
+            <div style="font-size:28px;font-weight:800;color:#6abf40;">${report.totalThisWeek}</div>
+            <div style="font-size:10px;color:#6b7280;margin-top:4px;">Hodnocení celkem</div>
+          </div>
+          <div style="flex:1;background:#f0fdf4;border-radius:8px;padding:14px;text-align:center;">
+            <div style="font-size:28px;font-weight:800;color:#16a34a;">${report.positivePercent}%</div>
+            <div style="font-size:10px;color:#6b7280;margin-top:4px;">Pozitivní</div>
+          </div>
+          <div style="flex:1;background:#fefce8;border-radius:8px;padding:14px;text-align:center;">
+            <div style="font-size:28px;font-weight:800;color:#ca8a04;">${report.neutralPercent}%</div>
+            <div style="font-size:10px;color:#6b7280;margin-top:4px;">Neutrální</div>
+          </div>
+          <div style="flex:1;background:#fef2f2;border-radius:8px;padding:14px;text-align:center;">
+            <div style="font-size:28px;font-weight:800;color:#dc2626;">${report.negativePercent}%</div>
+            <div style="font-size:10px;color:#6b7280;margin-top:4px;">Negativní</div>
+          </div>
+        </div>
+
+        <hr style="border:none;border-top:1px solid #e5e7eb;margin-bottom:20px;">
+
+        <!-- Best & Worst -->
+        <div style="font-size:11px;font-weight:700;color:#6abf40;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:10px;">
+          Nejlépe a nejhůře hodnocený oběd
+        </div>
+        <div style="display:flex;gap:10px;margin-bottom:24px;">
+          ${bestSection}
+          ${worstSection}
+        </div>
+
+        <hr style="border:none;border-top:1px solid #e5e7eb;margin-bottom:20px;">
+
+        <!-- Rating bar -->
+        <div style="font-size:11px;font-weight:700;color:#6abf40;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:10px;">
+          Grafické znázornění hodnocení
+        </div>
+        <div style="height:14px;border-radius:7px;overflow:hidden;display:flex;margin-bottom:10px;background:#f3f4f6;">
+          ${report.positivePercent > 0 ? `<div style="width:${report.positivePercent}%;background:#6abf40;"></div>` : ""}
+          ${report.neutralPercent > 0 ? `<div style="width:${report.neutralPercent}%;background:#eab308;"></div>` : ""}
+          ${report.negativePercent > 0 ? `<div style="width:${report.negativePercent}%;background:#ef4444;"></div>` : ""}
+        </div>
+        <div style="display:flex;gap:20px;margin-bottom:24px;">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div style="width:10px;height:10px;border-radius:50%;background:#6abf40;"></div>
+            <span style="font-size:12px;color:#374151;">Pozitivní ${report.positivePercent}%</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div style="width:10px;height:10px;border-radius:50%;background:#eab308;"></div>
+            <span style="font-size:12px;color:#374151;">Neutrální ${report.neutralPercent}%</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div style="width:10px;height:10px;border-radius:50%;background:#ef4444;"></div>
+            <span style="font-size:12px;color:#374151;">Negativní ${report.negativePercent}%</span>
+          </div>
+        </div>
+
+        <hr style="border:none;border-top:1px solid #e5e7eb;margin-bottom:20px;">
+
+        <!-- Comments -->
+        <div style="font-size:11px;font-weight:700;color:#6abf40;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:10px;">
+          Nejnovější komentáře
+        </div>
+        ${commentsHtml}
+
+        <!-- Footer -->
+        <hr style="border:none;border-top:1px solid #e5e7eb;margin-top:24px;margin-bottom:10px;">
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:#9ca3af;">
+          <span>Gymnázium Aš – Zpětná vazba na školní obědy</span>
+          <span>Vygenerováno: ${generatedAt}</span>
+        </div>
+
+      </div>
+    </div>
+  `;
+}
+
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+export async function generateWeeklyPdf(report: WeeklyReportData): Promise<void> {
   const now = new Date();
   const dayOfWeek = now.getDay();
   const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
@@ -68,218 +211,58 @@ export function generateWeeklyPdf(report: WeeklyReportData) {
   const weekLabel = `${format(weekStart, "d. MMMM", { locale: cs })} – ${format(now, "d. MMMM yyyy", { locale: cs })}`;
   const generatedAt = format(now, "d. MMMM yyyy, HH:mm", { locale: cs });
 
-  // ── Header band ──────────────────────────────────────────────────────────
-  doc.setFillColor("#6abf40");
-  doc.rect(0, 0, pageW, 28, "F");
+  // Create an off-screen container
+  const container = document.createElement("div");
+  container.style.cssText =
+    "position:fixed;left:-9999px;top:-9999px;width:794px;z-index:-1;pointer-events:none;";
+  container.innerHTML = buildReportHtml(report, weekLabel, generatedAt);
+  document.body.appendChild(container);
 
-  text("GYMNAZIUM AS", margin, 11, { size: 13, bold: true, color: "#ffffff" });
-  text("Zpetna vazba na skolni obedy", margin, 18, { size: 9, color: "#e8f5e9" });
+  try {
+    // A4 page dimensions in px at 96dpi
+    const A4_W = 794;
+    const A4_H = 1123;
 
-  text("TYDENNY PREGLED", pageW - margin, 11, {
-    size: 13,
-    bold: true,
-    color: "#ffffff",
-    align: "right",
-  });
-  text(weekLabel, pageW - margin, 18, { size: 8, color: "#e8f5e9", align: "right" });
+    const canvas = await html2canvas(container.firstElementChild as HTMLElement, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: "#ffffff",
+      width: A4_W,
+      windowWidth: A4_W,
+    });
 
-  y = 36;
+    const imgData = canvas.toDataURL("image/png");
+    const canvasH = canvas.height;
+    const canvasW = canvas.width;
 
-  // ── Meta row ─────────────────────────────────────────────────────────────
-  text(`Datum vygenerovani: ${generatedAt}`, margin, y, { size: 8, color: "#6b7280" });
-  y += 10;
-  line(margin, pageW - margin, y);
-  y += 8;
+    // Scale: how many canvas-pixels fit into one mm on A4 (210mm wide)
+    const mmPerPx = 210 / canvasW;
+    const pageHeightPx = A4_H * 2; // scale 2x
+    const totalPages = Math.ceil(canvasH / pageHeightPx);
 
-  // ── Section: Summary ─────────────────────────────────────────────────────
-  text("CELKOVY PREHLED", margin, y, { size: 8, bold: true, color: "#6abf40" });
-  y += 6;
+    const doc = new jsPDF({ unit: "mm", format: "a4" });
+    const pageH = 297; // A4 height in mm
 
-  // Stat boxes
-  const boxW = (contentW - 6) / 4;
-  const boxes = [
-    { label: "Hodnoceni celkem", value: String(report.totalThisWeek), color: "#6abf40", bg: "#f0fdf4" },
-    { label: "Pozitivni", value: `${report.positivePercent}%`, color: "#16a34a", bg: "#f0fdf4" },
-    { label: "Neutralni", value: `${report.neutralPercent}%`, color: "#ca8a04", bg: "#fefce8" },
-    { label: "Negativni", value: `${report.negativePercent}%`, color: "#dc2626", bg: "#fef2f2" },
-  ];
+    for (let i = 0; i < totalPages; i++) {
+      if (i > 0) doc.addPage();
 
-  boxes.forEach((b, i) => {
-    const x = margin + i * (boxW + 2);
-    doc.setFillColor(b.bg);
-    doc.roundedRect(x, y, boxW, 22, 2, 2, "F");
-    doc.setFontSize(18);
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(b.color);
-    doc.text(b.value, x + boxW / 2, y + 13, { align: "center" });
-    doc.setFontSize(7);
-    doc.setFont("helvetica", "normal");
-    doc.setTextColor("#6b7280");
-    doc.text(b.label, x + boxW / 2, y + 19, { align: "center" });
-  });
+      // Crop and draw the slice for this page
+      const sliceCanvas = document.createElement("canvas");
+      sliceCanvas.width = canvasW;
+      sliceCanvas.height = pageHeightPx;
+      const ctx = sliceCanvas.getContext("2d")!;
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, sliceCanvas.width, sliceCanvas.height);
+      ctx.drawImage(canvas, 0, -i * pageHeightPx);
 
-  y += 30;
-  line(margin, pageW - margin, y);
-  y += 8;
-
-  // ── Section: Best & Worst ─────────────────────────────────────────────────
-  text("NEJLEPE A NEJHURE HODNOCENY OBED", margin, y, { size: 8, bold: true, color: "#6abf40" });
-  y += 6;
-
-  const halfW = (contentW - 4) / 2;
-
-  // Best
-  doc.setFillColor("#f0fdf4");
-  doc.roundedRect(margin, y, halfW, 18, 2, 2, "F");
-  doc.setFillColor("#6abf40");
-  doc.circle(margin + 9, y + 9, 5.5, "F");
-  doc.setFontSize(11);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor("#ffffff");
-  doc.text("*", margin + 7.2, y + 10.5);
-  text("Nejlepe hodnoceny", margin + 17, y + 6, { size: 7, color: "#6b7280" });
-  text(report.bestMeal ? getMealName(report.bestMeal) : "–", margin + 17, y + 13, {
-    size: 12,
-    bold: true,
-    color: "#15803d",
-  });
-
-  // Worst
-  const wx = margin + halfW + 4;
-  doc.setFillColor("#fef2f2");
-  doc.roundedRect(wx, y, halfW, 18, 2, 2, "F");
-  doc.setFillColor("#dc2626");
-  doc.circle(wx + 9, y + 9, 5.5, "F");
-  doc.setFontSize(10);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor("#ffffff");
-  doc.text("v", wx + 7.5, y + 10.5);
-  text("Nejhure hodnoceny", wx + 17, y + 6, { size: 7, color: "#6b7280" });
-  text(report.worstMeal ? getMealName(report.worstMeal) : "–", wx + 17, y + 13, {
-    size: 12,
-    bold: true,
-    color: "#b91c1c",
-  });
-
-  y += 26;
-  line(margin, pageW - margin, y);
-  y += 8;
-
-  // ── Section: Rating bar ───────────────────────────────────────────────────
-  text("GRAFICKE ZNAZORNENI HODNOCENI", margin, y, { size: 8, bold: true, color: "#6abf40" });
-  y += 7;
-
-  const barH = 7;
-  const total =
-    report.positivePercent + report.neutralPercent + report.negativePercent || 100;
-
-  const segments = [
-    { pct: report.positivePercent, color: "#6abf40" },
-    { pct: report.neutralPercent, color: "#eab308" },
-    { pct: report.negativePercent, color: "#ef4444" },
-  ];
-
-  let xCursor = margin;
-  segments.forEach(({ pct, color }) => {
-    const w = (pct / total) * contentW;
-    if (w > 0) {
-      doc.setFillColor(color);
-      doc.rect(xCursor, y, w, barH, "F");
-      xCursor += w;
+      const sliceData = sliceCanvas.toDataURL("image/png");
+      const sliceHmm = sliceCanvas.height * mmPerPx;
+      doc.addImage(sliceData, "PNG", 0, 0, 210, sliceHmm);
     }
-  });
-  // rounded cap effect via clipping is skipped for simplicity
 
-  y += barH + 4;
-
-  const legendItems = [
-    { label: `Pozitivni ${report.positivePercent}%`, color: "#6abf40" },
-    { label: `Neutralni ${report.neutralPercent}%`, color: "#eab308" },
-    { label: `Negativni ${report.negativePercent}%`, color: "#ef4444" },
-  ];
-  legendItems.forEach((item, i) => {
-    const lx = margin + i * 55;
-    doc.setFillColor(item.color);
-    doc.circle(lx + 2, y - 1, 2, "F");
-    text(item.label, lx + 6, y, { size: 8, color: "#374151" });
-  });
-
-  y += 12;
-  line(margin, pageW - margin, y);
-  y += 8;
-
-  // ── Section: Recent comments ──────────────────────────────────────────────
-  text("NEJNOVEJSI KOMENTARE", margin, y, { size: 8, bold: true, color: "#6abf40" });
-  y += 6;
-
-  if (report.recentComments.length === 0) {
-    doc.setFillColor("#f9fafb");
-    doc.roundedRect(margin, y, contentW, 14, 2, 2, "F");
-    text("Tento tyden zatim zadne komentare.", margin + contentW / 2, y + 9, {
-      size: 9,
-      color: "#9ca3af",
-      align: "center",
-    });
-    y += 20;
-  } else {
-    report.recentComments.forEach((c, idx) => {
-      if (y > 250) {
-        doc.addPage();
-        y = 20;
-      }
-
-      const bgColor = idx % 2 === 0 ? "#f9fafb" : "#ffffff";
-      doc.setFillColor(bgColor);
-      doc.setDrawColor("#e5e7eb");
-      doc.setLineWidth(0.3);
-      doc.roundedRect(margin, y, contentW, 18, 2, 2, "FD");
-
-      // Left accent stripe
-      const ratingColor =
-        c.rating === "positive" ? "#6abf40" : c.rating === "neutral" ? "#eab308" : "#ef4444";
-      doc.setFillColor(ratingColor);
-      doc.roundedRect(margin, y, 3, 18, 1, 1, "F");
-
-      // Meal & rating badge
-      text(getMealName(c.meal), margin + 7, y + 6, { size: 8, bold: true, color: "#1f2937" });
-
-      const ratingLabel =
-        c.rating === "positive" ? "Pozitivni" : c.rating === "neutral" ? "Neutralni" : "Negativni";
-      const badgeBg =
-        c.rating === "positive" ? "#dcfce7" : c.rating === "neutral" ? "#fef9c3" : "#fee2e2";
-      const badgeFg =
-        c.rating === "positive" ? "#15803d" : c.rating === "neutral" ? "#92400e" : "#b91c1c";
-      badge(ratingLabel, margin + 7 + doc.getTextWidth(getMealName(c.meal)) + 4, y + 6, badgeBg, badgeFg);
-
-      // Date
-      const dateStr = format(new Date(c.createdAt), "d. M. yyyy, HH:mm", { locale: cs });
-      text(dateStr, pageW - margin - 2, y + 6, { size: 7, color: "#9ca3af", align: "right" });
-
-      // Comment text — wrap if needed
-      const maxCommentW = contentW - 10;
-      doc.setFontSize(8.5);
-      doc.setFont("helvetica", "normal");
-      doc.setTextColor("#374151");
-      const wrapped = doc.splitTextToSize(c.comment, maxCommentW);
-      doc.text(wrapped[0], margin + 7, y + 13);
-
-      y += 22;
-    });
+    const filename = `tydenny-pregled-${format(now, "yyyy-MM-dd")}.pdf`;
+    doc.save(filename);
+  } finally {
+    document.body.removeChild(container);
   }
-
-  // ── Footer ────────────────────────────────────────────────────────────────
-  const footerY = doc.internal.pageSize.getHeight() - 12;
-  line(margin, pageW - margin, footerY - 4, "#e5e7eb");
-  text("Gymnazium As – Zpetna vazba na skolni obedy", margin, footerY, {
-    size: 7,
-    color: "#9ca3af",
-  });
-  text(`Vygenerovano: ${generatedAt}`, pageW - margin, footerY, {
-    size: 7,
-    color: "#9ca3af",
-    align: "right",
-  });
-
-  const filename = `tydenny-pregled-${format(now, "yyyy-MM-dd")}.pdf`;
-  doc.save(filename);
 }

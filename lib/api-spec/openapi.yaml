@@ -65,6 +65,19 @@ paths:
                 items:
                   $ref: "#/components/schemas/Feedback"
 
+  /feedback/weekly-report:
+    get:
+      operationId: getWeeklyReport
+      tags: [feedback]
+      summary: Get aggregated weekly feedback report
+      responses:
+        "200":
+          description: Weekly report data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WeeklyReport"
+
   /feedback/stats:
     get:
       operationId: getFeedbackStats
@@ -127,6 +140,60 @@ components:
         - meal
         - rating
         - createdAt
+
+    WeeklyReportComment:
+      type: object
+      properties:
+        meal:
+          type: string
+        rating:
+          type: string
+          enum: [positive, neutral, negative]
+        comment:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - meal
+        - rating
+        - comment
+        - createdAt
+
+    WeeklyReport:
+      type: object
+      properties:
+        totalThisWeek:
+          type: integer
+        positivePercent:
+          type: number
+        neutralPercent:
+          type: number
+        negativePercent:
+          type: number
+        bestMeal:
+          type: string
+          nullable: true
+        worstMeal:
+          type: string
+          nullable: true
+        recentComments:
+          type: array
+          items:
+            $ref: "#/components/schemas/WeeklyReportComment"
+        mealBreakdown:
+          type: array
+          items:
+            $ref: "#/components/schemas/MealStats"
+      required:
+        - totalThisWeek
+        - positivePercent
+        - neutralPercent
+        - negativePercent
+        - bestMeal
+        - worstMeal
+        - recentComments
+        - mealBreakdown
 
     MealStats:
       type: object

@@ -63,6 +63,76 @@ router.get("/feedback", async (req, res): Promise<void> => {
   res.json(ListFeedbackResponse.parse(result));
 });
 
+router.get("/feedback/weekly-report", async (req, res): Promise<void> => {
+  const now = new Date();
+  const dayOfWeek = now.getDay(); // 0 = Sunday
+  const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+  const weekStart = new Date(now);
+  weekStart.setDate(now.getDate() - daysFromMonday);
+  weekStart.setHours(0, 0, 0, 0);
+
+  const weekRows = await db
+    .select()
+    .from(feedbackTable)
+    .where(sql`${feedbackTable.createdAt} >= ${weekStart}`)
+    .orderBy(feedbackTable.createdAt);
+
+  const total = weekRows.length;
+  const positive = weekRows.filter((r) => r.rating === "positive").length;
+  const neutral = weekRows.filter((r) => r.rating === "neutral").length;
+  const negative = weekRows.filter((r) => r.rating === "negative").length;
+
+  const pct = (n: number) => (total === 0 ? 0 : Math.round((n / total) * 100));
+
+  // Meal breakdown for this week
+  const mealsInWeek = [...new Set(weekRows.map((r) => r.meal))];
+  const mealBreakdown = mealsInWeek.map((meal) => {
+    const rows = weekRows.filter((r) => r.meal === meal);
+    return {
+      meal,
+      positive: rows.filter((r) => r.rating === "positive").length,
+      neutral: rows.filter((r) => r.rating === "neutral").length,
+      negative: rows.filter((r) => r.rating === "negative").length,
+      total: rows.length,
+    };
+  });
+
+  // Best meal = highest positive ratio; worst = highest negative ratio
+  let bestMeal: string | null = null;
+  let worstMeal: string | null = null;
+  if (mealBreakdown.length > 0) {
+    const sorted = [...mealBreakdown].sort(
+      (a, b) => b.positive / (b.total || 1) - a.positive / (a.total || 1)
+    );
+    bestMeal = sorted[0].meal;
+    worstMeal = sorted[sorted.length - 1].meal;
+    if (bestMeal === worstMeal) worstMeal = null;
+  }
+
+  // Recent comments (up to 5, most recent first)
+  const recentComments = weekRows
+    .filter((r) => r.comment)
+    .reverse()
+    .slice(0, 5)
+    .map((r) => ({
+      meal: r.meal,
+      rating: r.rating,
+      comment: r.comment!,
+      createdAt: r.createdAt.toISOString(),
+    }));
+
+  res.json({
+    totalThisWeek: total,
+    positivePercent: pct(positive),
+    neutralPercent: pct(neutral),
+    negativePercent: pct(negative),
+    bestMeal,
+    worstMeal,
+    recentComments,
+    mealBreakdown,
+  });
+});
+
 router.get("/feedback/stats", async (req, res): Promise<void> => {
   const rows = await db
     .select({

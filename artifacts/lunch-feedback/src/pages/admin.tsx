@@ -1,5 +1,6 @@
 import { useListFeedback, useGetFeedbackStats } from "@workspace/api-client-react";
 import PinGuard from "@/components/pin-guard";
+import WeeklyReport from "@/components/weekly-report";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -70,8 +71,10 @@ export default function Admin() {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4 mt-8 space-y-8">
-        
+      <main className="max-w-6xl mx-auto px-4 mt-8 space-y-12">
+
+        <WeeklyReport />
+
         {/* Stats Section */}
         <section>
           <div className="flex items-center justify-between mb-6">

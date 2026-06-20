@@ -42,12 +42,39 @@ export interface Feedback {
   createdAt: string;
 }
 
+export type WeeklyReportCommentRating = typeof WeeklyReportCommentRating[keyof typeof WeeklyReportCommentRating];
+
+
+export const WeeklyReportCommentRating = {
+  positive: 'positive',
+  neutral: 'neutral',
+  negative: 'negative',
+} as const;
+
+export interface WeeklyReportComment {
+  meal: string;
+  rating: WeeklyReportCommentRating;
+  comment: string;
+  createdAt: string;
+}
+
 export interface MealStats {
   meal: string;
   positive: number;
   neutral: number;
   negative: number;
   total: number;
+}
+
+export interface WeeklyReport {
+  totalThisWeek: number;
+  positivePercent: number;
+  neutralPercent: number;
+  negativePercent: number;
+  bestMeal: string | null;
+  worstMeal: string | null;
+  recentComments: WeeklyReportComment[];
+  mealBreakdown: MealStats[];
 }
 
 export type ListFeedbackParams = {

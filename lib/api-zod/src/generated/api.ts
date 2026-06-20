@@ -45,6 +45,32 @@ export const ListFeedbackResponse = zod.array(ListFeedbackResponseItem)
 
 
 /**
+ * @summary Get aggregated weekly feedback report
+ */
+export const GetWeeklyReportResponse = zod.object({
+  "totalThisWeek": zod.number(),
+  "positivePercent": zod.number(),
+  "neutralPercent": zod.number(),
+  "negativePercent": zod.number(),
+  "bestMeal": zod.string().nullable(),
+  "worstMeal": zod.string().nullable(),
+  "recentComments": zod.array(zod.object({
+  "meal": zod.string(),
+  "rating": zod.enum(['positive', 'neutral', 'negative']),
+  "comment": zod.string(),
+  "createdAt": zod.coerce.date()
+})),
+  "mealBreakdown": zod.array(zod.object({
+  "meal": zod.string(),
+  "positive": zod.number(),
+  "neutral": zod.number(),
+  "negative": zod.number(),
+  "total": zod.number()
+}))
+})
+
+
+/**
  * @summary Get aggregated feedback stats per meal
  */
 export const GetFeedbackStatsResponseItem = zod.object({

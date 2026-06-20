@@ -24,7 +24,8 @@ import type {
   Feedback,
   HealthStatus,
   ListFeedbackParams,
-  MealStats
+  MealStats,
+  WeeklyReport
 } from './api.schemas';
 
 import { customFetch } from '../custom-fetch';
@@ -260,6 +261,83 @@ export function useListFeedback<TData = Awaited<ReturnType<typeof listFeedback>>
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getListFeedbackQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetWeeklyReportUrl = () => {
+
+
+
+
+  return `/api/feedback/weekly-report`
+}
+
+/**
+ * @summary Get aggregated weekly feedback report
+ */
+export const getWeeklyReport = async ( options?: RequestInit): Promise<WeeklyReport> => {
+
+  return customFetch<WeeklyReport>(getGetWeeklyReportUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetWeeklyReportQueryKey = () => {
+    return [
+    `/api/feedback/weekly-report`
+    ] as const;
+    }
+
+
+export const getGetWeeklyReportQueryOptions = <TData = Awaited<ReturnType<typeof getWeeklyReport>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getWeeklyReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetWeeklyReportQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getWeeklyReport>>> = ({ signal }) => getWeeklyReport({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getWeeklyReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetWeeklyReportQueryResult = NonNullable<Awaited<ReturnType<typeof getWeeklyReport>>>
+export type GetWeeklyReportQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get aggregated weekly feedback report
+ */
+
+export function useGetWeeklyReport<TData = Awaited<ReturnType<typeof getWeeklyReport>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getWeeklyReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetWeeklyReportQueryOptions(options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

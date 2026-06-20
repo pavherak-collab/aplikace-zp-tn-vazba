@@ -13,3 +13,6 @@ export * from './feedbackRating';
 export * from './healthStatus';
 export * from './listFeedbackParams';
 export * from './mealStats';
+export * from './weeklyReport';
+export * from './weeklyReportComment';
+export * from './weeklyReportCommentRating';

@@ -3,6 +3,7 @@ import PinGuard from "@/components/pin-guard";
 import WeeklyReport from "@/components/weekly-report";
 import ReportHistory from "@/components/report-history";
 import MenuSync from "@/components/menu-sync";
+import EmailSettings from "@/components/email-settings";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -78,6 +79,8 @@ export default function Admin() {
         <WeeklyReport />
 
         <MenuSync />
+
+        <EmailSettings />
 
         <ReportHistory />
 

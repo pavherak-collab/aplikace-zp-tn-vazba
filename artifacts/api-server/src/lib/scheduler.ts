@@ -2,19 +2,32 @@ import cron from "node-cron";
 import { logger } from "./logger";
 import { generateAndStoreWeeklyReport } from "./report-generator";
 import { syncMenusToDb } from "./strava-sync";
+import { sendWeeklyReportEmail } from "./email-service";
+import { db, emailSettingsTable } from "@workspace/db";
 
 export function startScheduler() {
-  // Generate weekly report every Monday at 06:00
+  // Generate weekly report every Monday at 06:00, then email it
   cron.schedule(
     "0 6 * * 1",
     async () => {
       logger.info("Scheduler: generating weekly report for previous week");
       try {
-        // Generate report for the week that just ended (previous Monday → Sunday)
         const lastWeek = new Date();
         lastWeek.setDate(lastWeek.getDate() - 7);
-        await generateAndStoreWeeklyReport(lastWeek);
+        const report = await generateAndStoreWeeklyReport(lastWeek);
         logger.info("Scheduler: weekly report generated successfully");
+
+        // Send email if enabled
+        const [settings] = await db.select().from(emailSettingsTable).limit(1);
+        if (settings?.enabled && settings.recipients.trim()) {
+          logger.info("Scheduler: sending weekly report email");
+          const result = await sendWeeklyReportEmail(report);
+          if (result.success) {
+            logger.info({ message: result.message }, "Scheduler: email sent");
+          } else {
+            logger.error({ error: result.error }, "Scheduler: email send failed");
+          }
+        }
       } catch (err) {
         logger.error({ err }, "Scheduler: failed to generate weekly report");
       }
@@ -22,7 +35,7 @@ export function startScheduler() {
     { timezone: "Europe/Prague" }
   );
 
-  // Sync today's menu from Strava.cz every day at 07:00
+  // Sync today's menu from Strava.cz every weekday at 07:00
   cron.schedule(
     "0 7 * * 1-5",
     async () => {
@@ -37,5 +50,5 @@ export function startScheduler() {
     { timezone: "Europe/Prague" }
   );
 
-  logger.info("Scheduler started (weekly report: Mon 06:00, menu sync: Mon–Fri 07:00)");
+  logger.info("Scheduler started (weekly report+email: Mon 06:00, menu sync: Mon–Fri 07:00)");
 }

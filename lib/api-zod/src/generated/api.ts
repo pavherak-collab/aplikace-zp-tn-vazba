@@ -209,3 +209,67 @@ export const GenerateWeeklyReportResponse = zod.object({
 })
 
 
+/**
+ * @summary Get current email notification settings
+ */
+export const GetEmailSettingsResponse = zod.object({
+  "id": zod.number(),
+  "recipients": zod.string(),
+  "fromAddress": zod.string(),
+  "enabled": zod.boolean(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Update email notification settings
+ */
+export const UpdateEmailSettingsBody = zod.object({
+  "recipients": zod.string().optional(),
+  "fromAddress": zod.string().optional(),
+  "enabled": zod.boolean().optional()
+})
+
+export const UpdateEmailSettingsResponse = zod.object({
+  "id": zod.number(),
+  "recipients": zod.string(),
+  "fromAddress": zod.string(),
+  "enabled": zod.boolean(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Send a test email to configured recipients
+ */
+export const SendTestEmailResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string(),
+  "error": zod.string().nullish()
+})
+
+
+/**
+ * @summary Send the latest weekly report email now
+ */
+export const SendReportEmailResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string(),
+  "error": zod.string().nullish()
+})
+
+
+/**
+ * @summary Get recent email delivery log entries
+ */
+export const GetEmailLogsResponseItem = zod.object({
+  "id": zod.number(),
+  "sentAt": zod.coerce.date(),
+  "recipients": zod.string(),
+  "status": zod.string(),
+  "error": zod.string().nullish(),
+  "weekStart": zod.string().nullish()
+})
+export const GetEmailLogsResponse = zod.array(GetEmailLogsResponseItem)
+
+

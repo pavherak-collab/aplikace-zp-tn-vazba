@@ -215,6 +215,77 @@ paths:
               schema:
                 $ref: "#/components/schemas/StoredWeeklyReport"
 
+  /email/settings:
+    get:
+      operationId: getEmailSettings
+      tags: [email]
+      summary: Get current email notification settings
+      responses:
+        "200":
+          description: Current email settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmailSettings"
+    put:
+      operationId: updateEmailSettings
+      tags: [email]
+      summary: Update email notification settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateEmailSettingsInput"
+      responses:
+        "200":
+          description: Updated email settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmailSettings"
+
+  /email/send-test:
+    post:
+      operationId: sendTestEmail
+      tags: [email]
+      summary: Send a test email to configured recipients
+      responses:
+        "200":
+          description: Send result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SendEmailResult"
+
+  /email/send-report:
+    post:
+      operationId: sendReportEmail
+      tags: [email]
+      summary: Send the latest weekly report email now
+      responses:
+        "200":
+          description: Send result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SendEmailResult"
+
+  /email/logs:
+    get:
+      operationId: getEmailLogs
+      tags: [email]
+      summary: Get recent email delivery log entries
+      responses:
+        "200":
+          description: Recent email logs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/EmailLog"
+
 components:
   schemas:
     HealthStatus:
@@ -402,6 +473,75 @@ components:
         - neutral
         - negative
         - total
+
+    EmailSettings:
+      type: object
+      properties:
+        id:
+          type: integer
+        recipients:
+          type: string
+        fromAddress:
+          type: string
+        enabled:
+          type: boolean
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - recipients
+        - fromAddress
+        - enabled
+        - updatedAt
+
+    UpdateEmailSettingsInput:
+      type: object
+      properties:
+        recipients:
+          type: string
+        fromAddress:
+          type: string
+        enabled:
+          type: boolean
+
+    SendEmailResult:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        error:
+          type: string
+          nullable: true
+      required:
+        - success
+        - message
+
+    EmailLog:
+      type: object
+      properties:
+        id:
+          type: integer
+        sentAt:
+          type: string
+          format: date-time
+        recipients:
+          type: string
+        status:
+          type: string
+        error:
+          type: string
+          nullable: true
+        weekStart:
+          type: string
+          nullable: true
+      required:
+        - id
+        - sentAt
+        - recipients
+        - status
 
     SyncLogEntry:
       type: object

@@ -104,6 +104,35 @@ export interface StoredMealBreakdown {
   total: number;
 }
 
+export interface EmailSettings {
+  id: number;
+  recipients: string;
+  fromAddress: string;
+  enabled: boolean;
+  updatedAt: string;
+}
+
+export interface UpdateEmailSettingsInput {
+  recipients?: string;
+  fromAddress?: string;
+  enabled?: boolean;
+}
+
+export interface SendEmailResult {
+  success: boolean;
+  message: string;
+  error?: string | null;
+}
+
+export interface EmailLog {
+  id: number;
+  sentAt: string;
+  recipients: string;
+  status: string;
+  error?: string | null;
+  weekStart?: string | null;
+}
+
 export interface SyncLogEntry {
   id: number;
   triggeredAt: string;

@@ -8,6 +8,24 @@ import {
   PieChart, Pie, Cell, Tooltip as RechartsTooltip,
   ResponsiveContainer, Legend,
 } from "recharts";
+
+const RADIAN = Math.PI / 180;
+const renderPieLabel = ({
+  cx, cy, midAngle, innerRadius, outerRadius, value,
+}: {
+  cx: number; cy: number; midAngle: number;
+  innerRadius: number; outerRadius: number; value: number;
+}) => {
+  if (!value) return null;
+  const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+  const x = cx + radius * Math.cos(-midAngle * RADIAN);
+  const y = cy + radius * Math.sin(-midAngle * RADIAN);
+  return (
+    <text x={x} y={y} fill="white" textAnchor="middle" dominantBaseline="central" fontSize={13} fontWeight="700">
+      {`${value}%`}
+    </text>
+  );
+};
 import { Smile, Meh, Frown, Trophy, ThumbsDown, MessageSquare, CalendarDays, Download } from "lucide-react";
 import { format } from "date-fns";
 import { cs } from "date-fns/locale";
@@ -49,7 +67,7 @@ export default function WeeklyReport() {
       <section>
         <div className="flex items-center gap-3 mb-6">
           <CalendarDays className="w-6 h-6 text-primary" />
-          <h2 className="text-2xl font-bold tracking-tight">Týdenní přehled</h2>
+          <h2 className="text-2xl font-bold tracking-tight">Týdenní přehled obědů</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-[120px] rounded-xl" />)}
@@ -76,7 +94,7 @@ export default function WeeklyReport() {
         <div className="flex items-center gap-3">
           <CalendarDays className="w-6 h-6 text-primary" />
           <div>
-            <h2 className="text-2xl font-bold tracking-tight">Týdenní přehled</h2>
+            <h2 className="text-2xl font-bold tracking-tight">Týdenní přehled obědů</h2>
             <p className="text-sm text-muted-foreground">{weekLabel}</p>
           </div>
         </div>
@@ -87,7 +105,7 @@ export default function WeeklyReport() {
           data-testid="button-download-pdf"
         >
           <Download className="w-4 h-4" />
-          {downloading ? "Generuji..." : "Stáhnout report (PDF)"}
+          {downloading ? "Generuji..." : "Stáhnout přehled (PDF)"}
         </Button>
       </div>
 
@@ -154,7 +172,7 @@ export default function WeeklyReport() {
                       outerRadius={90}
                       paddingAngle={3}
                       dataKey="value"
-                      label={({ name, value }) => `${value}%`}
+                      label={renderPieLabel}
                       labelLine={false}
                     >
                       {pieData.map((entry, i) => (

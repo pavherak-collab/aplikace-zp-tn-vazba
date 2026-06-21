@@ -43,7 +43,7 @@ export default function ReportHistory() {
         <div className="flex items-center gap-3">
           <FileText className="w-6 h-6 text-primary" />
           <div>
-            <h2 className="text-2xl font-bold tracking-tight">Archiv týdenních reportů</h2>
+            <h2 className="text-2xl font-bold tracking-tight">Archiv týdenních přehledů</h2>
             <p className="text-sm text-muted-foreground">
               Automaticky generováno každé pondělí v 06:00
             </p>
@@ -70,7 +70,7 @@ export default function ReportHistory() {
         <Card className="border-0 shadow-md bg-white/80 backdrop-blur-sm">
           <CardContent className="py-16 text-center">
             <FileText className="w-12 h-12 mx-auto mb-4 text-muted-foreground/30" />
-            <h3 className="text-lg font-semibold mb-2">Zatím žádné uložené reporty</h3>
+            <h3 className="text-lg font-semibold mb-2">Zatím žádné uložené přehledy</h3>
             <p className="text-muted-foreground text-sm max-w-sm mx-auto">
               Reporty se generují automaticky každé pondělí. Klikněte na "Generovat nyní" pro okamžité vytvoření reportu.
             </p>

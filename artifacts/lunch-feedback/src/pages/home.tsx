@@ -88,7 +88,7 @@ export default function Home() {
               }}
               data-testid="button-new-feedback"
             >
-              Hodnotit další oběd
+              Zpět k hodnocení
             </Button>
             
             <Link href="/admin" className="text-muted-foreground hover:text-primary transition-colors mt-6 text-sm font-medium" data-testid="link-admin">

@@ -217,7 +217,7 @@ export async function sendWeeklyReportEmail(
   const attachments = pdfBuffer
     ? [
         {
-          filename: `prehled-obedu-${report.weekStart}.pdf`,
+          filename: `tydenni-prehled-obedu-${report.weekStart}.pdf`,
           content: pdfBuffer,
         },
       ]

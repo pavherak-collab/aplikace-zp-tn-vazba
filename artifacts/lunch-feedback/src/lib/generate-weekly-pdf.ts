@@ -100,7 +100,7 @@ function buildReportHtml(report: WeeklyReportData, weekLabel: string, generatedA
           <div style="font-size:12px;color:#e8f5e9;margin-top:2px;">Zpětná vazba na školní obědy</div>
         </div>
         <div style="text-align:right;">
-          <div style="font-size:16px;font-weight:700;color:white;">TÝDENNÍ PŘEHLED</div>
+          <div style="font-size:16px;font-weight:700;color:white;">TÝDENNÍ PŘEHLED OBĚDŮ</div>
           <div style="font-size:12px;color:#e8f5e9;margin-top:2px;">${weekLabel}</div>
         </div>
       </div>
@@ -260,7 +260,7 @@ export async function generateWeeklyPdf(report: WeeklyReportData): Promise<void>
       doc.addImage(sliceData, "PNG", 0, 0, 210, sliceHmm);
     }
 
-    const filename = `tydenny-pregled-${format(now, "yyyy-MM-dd")}.pdf`;
+    const filename = `tydenni-prehled-obedu-${format(now, "yyyy-MM-dd")}.pdf`;
     doc.save(filename);
   } finally {
     document.body.removeChild(container);

@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
-import { eq, sql } from "drizzle-orm";
-import { db, feedbackTable } from "@workspace/db";
+import { and, eq, sql } from "drizzle-orm";
+import { db, feedbackTable, menusTable } from "@workspace/db";
 import {
   CreateFeedbackBody,
   ListFeedbackQueryParams,
@@ -10,6 +10,15 @@ import {
 
 const router: IRouter = Router();
 
+function getPragueDate(): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Prague",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+}
+
 router.post("/feedback", async (req, res): Promise<void> => {
   const parsed = CreateFeedbackBody.safeParse(req.body);
   if (!parsed.success) {
@@ -18,10 +27,17 @@ router.post("/feedback", async (req, res): Promise<void> => {
     return;
   }
 
+  const [menu] = await db
+    .select({ name: menusTable.name })
+    .from(menusTable)
+    .where(and(eq(menusTable.date, getPragueDate()), eq(menusTable.mealType, parsed.data.meal)))
+    .limit(1);
+
   const [feedback] = await db
     .insert(feedbackTable)
     .values({
       meal: parsed.data.meal,
+      mealName: menu?.name ?? null,
       rating: parsed.data.rating,
       comment: parsed.data.comment ?? null,
     })
@@ -30,6 +46,7 @@ router.post("/feedback", async (req, res): Promise<void> => {
   res.status(201).json({
     id: feedback.id,
     meal: feedback.meal,
+    mealName: feedback.mealName ?? null,
     rating: feedback.rating,
     comment: feedback.comment ?? null,
     createdAt: feedback.createdAt.toISOString(),
@@ -55,6 +72,7 @@ router.get("/feedback", async (req, res): Promise<void> => {
   const result = rows.map((r) => ({
     id: r.id,
     meal: r.meal,
+    mealName: r.mealName ?? null,
     rating: r.rating,
     comment: r.comment ?? null,
     createdAt: r.createdAt.toISOString(),
@@ -116,6 +134,7 @@ router.get("/feedback/weekly-report", async (req, res): Promise<void> => {
     .slice(0, 5)
     .map((r) => ({
       meal: r.meal,
+      mealName: r.mealName ?? null,
       rating: r.rating,
       comment: r.comment!,
       createdAt: r.createdAt.toISOString(),

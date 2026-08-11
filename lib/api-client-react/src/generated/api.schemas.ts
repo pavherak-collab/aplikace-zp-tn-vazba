@@ -37,6 +37,7 @@ export const FeedbackRating = {
 export interface Feedback {
   id: number;
   meal: string;
+  mealName: string | null;
   rating: FeedbackRating;
   comment?: string | null;
   createdAt: string;
@@ -53,6 +54,7 @@ export const WeeklyReportCommentRating = {
 
 export interface WeeklyReportComment {
   meal: string;
+  mealName: string | null;
   rating: WeeklyReportCommentRating;
   comment: string;
   createdAt: string;

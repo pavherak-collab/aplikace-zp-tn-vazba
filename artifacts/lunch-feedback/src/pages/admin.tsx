@@ -195,7 +195,12 @@ export default function Admin() {
                           {format(new Date(item.createdAt), "d. MMMM yyyy, HH:mm", { locale: cs })}
                         </TableCell>
                         <TableCell className="font-semibold" data-testid={`text-feedback-meal-${item.id}`}>
-                          {getMealName(item.meal)}
+                          <div>{getMealName(item.meal)}</div>
+                          {item.mealName && (
+                            <div className="mt-1 text-sm font-normal text-muted-foreground whitespace-normal">
+                              {item.mealName}
+                            </div>
+                          )}
                         </TableCell>
                         <TableCell data-testid={`text-feedback-rating-${item.id}`}>
                           {getRatingBadge(item.rating)}

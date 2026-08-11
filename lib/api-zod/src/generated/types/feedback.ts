@@ -10,6 +10,7 @@ import type { FeedbackRating } from './feedbackRating';
 export interface Feedback {
   id: number;
   meal: string;
+  mealName: string | null;
   rating: FeedbackRating;
   comment?: string | null;
   createdAt: Date;

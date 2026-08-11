@@ -9,6 +9,7 @@ import type { WeeklyReportCommentRating } from './weeklyReportCommentRating';
 
 export interface WeeklyReportComment {
   meal: string;
+  mealName: string | null;
   rating: WeeklyReportCommentRating;
   comment: string;
   createdAt: Date;

@@ -5,6 +5,7 @@ import { z } from "zod/v4";
 export const feedbackTable = pgTable("feedback", {
   id: serial("id").primaryKey(),
   meal: text("meal").notNull(),
+  mealName: text("meal_name"),
   rating: text("rating").notNull(),
   comment: text("comment"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

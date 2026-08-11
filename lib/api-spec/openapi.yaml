@@ -319,6 +319,9 @@ components:
           type: integer
         meal:
           type: string
+        mealName:
+          type: string
+          nullable: true
         rating:
           type: string
           enum: [positive, neutral, negative]
@@ -331,6 +334,7 @@ components:
       required:
         - id
         - meal
+        - mealName
         - rating
         - createdAt
 
@@ -339,6 +343,9 @@ components:
       properties:
         meal:
           type: string
+        mealName:
+          type: string
+          nullable: true
         rating:
           type: string
           enum: [positive, neutral, negative]
@@ -349,6 +356,7 @@ components:
           format: date-time
       required:
         - meal
+        - mealName
         - rating
         - comment
         - createdAt

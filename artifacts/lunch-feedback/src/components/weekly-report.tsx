@@ -236,7 +236,12 @@ export default function WeeklyReport() {
             {report.recentComments.map((c, i) => (
               <div key={i} className="py-3 first:pt-0 last:pb-0" data-testid={`comment-item-${i}`}>
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-sm font-semibold">{getMealName(c.meal)}</span>
+                  <div className="min-w-0">
+                    <div className="text-sm font-semibold">{getMealName(c.meal)}</div>
+                    {c.mealName && (
+                      <div className="text-xs text-muted-foreground truncate">{c.mealName}</div>
+                    )}
+                  </div>
                   {c.rating === "positive" && <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 text-xs"><Smile className="w-3 h-3 mr-1" />Pozitivní</Badge>}
                   {c.rating === "neutral" && <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200 text-xs"><Meh className="w-3 h-3 mr-1" />Neutrální</Badge>}
                   {c.rating === "negative" && <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200 text-xs"><Frown className="w-3 h-3 mr-1" />Negativní</Badge>}

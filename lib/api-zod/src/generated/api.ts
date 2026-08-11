@@ -37,6 +37,7 @@ export const ListFeedbackQueryParams = zod.object({
 export const ListFeedbackResponseItem = zod.object({
   "id": zod.number(),
   "meal": zod.string(),
+  "mealName": zod.string().nullable(),
   "rating": zod.enum(['positive', 'neutral', 'negative']),
   "comment": zod.string().nullish(),
   "createdAt": zod.coerce.date()
@@ -56,6 +57,7 @@ export const GetWeeklyReportResponse = zod.object({
   "worstMeal": zod.string().nullable(),
   "recentComments": zod.array(zod.object({
   "meal": zod.string(),
+  "mealName": zod.string().nullable(),
   "rating": zod.enum(['positive', 'neutral', 'negative']),
   "comment": zod.string(),
   "createdAt": zod.coerce.date()

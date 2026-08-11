@@ -5,6 +5,7 @@ import { cs } from "date-fns/locale";
 
 interface WeeklyReportComment {
   meal: string;
+  mealName: string | null;
   rating: string;
   comment: string;
   createdAt: string;
@@ -35,29 +36,63 @@ const getRatingBg = (rating: string) =>
 const getRatingBar = (rating: string) =>
   rating === "positive" ? "#6abf40" : rating === "neutral" ? "#eab308" : "#ef4444";
 
+const getMealOrder = (meal: string) =>
+  meal === "obed1" ? 1 : meal === "obed2" ? 2 : 3;
+
 function buildReportHtml(report: WeeklyReportData, weekLabel: string, generatedAt: string): string {
   const commentsHtml =
     report.recentComments.length === 0
       ? `<div style="background:#f9fafb;border-radius:8px;padding:20px;text-align:center;color:#9ca3af;font-size:13px;">
            Tento týden zatím žádné komentáře.
          </div>`
-      : report.recentComments
+      : Object.entries(
+          report.recentComments.reduce<Record<string, WeeklyReportComment[]>>((groups, comment) => {
+            const dayKey = format(new Date(comment.createdAt), "yyyy-MM-dd");
+            (groups[dayKey] ??= []).push(comment);
+            return groups;
+          }, {})
+        )
+          .sort(([dateA], [dateB]) => dateB.localeCompare(dateA))
           .map(
-            (c) => `
-          <div style="display:flex;gap:0;background:#f9fafb;border-radius:8px;overflow:hidden;border:1px solid #e5e7eb;margin-bottom:10px;">
-            <div style="width:4px;background:${getRatingBar(c.rating)};flex-shrink:0;"></div>
-            <div style="flex:1;padding:10px 14px;">
-              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-                <div style="display:flex;align-items:center;gap:8px;">
-                  <span style="font-weight:700;font-size:13px;color:#1f2937;">${getMealName(c.meal)}</span>
-                  <span style="font-size:11px;font-weight:600;color:${getRatingColor(c.rating)};background:${getRatingBg(c.rating)};padding:2px 8px;border-radius:999px;">
-                    ${getRatingLabel(c.rating)}
-                  </span>
-                </div>
-                <span style="font-size:11px;color:#9ca3af;">${format(new Date(c.createdAt), "d. M. yyyy, HH:mm", { locale: cs })}</span>
+            ([date, comments]) => `
+          <div style="margin-bottom:16px;">
+            <div style="background:#eef7e9;border-left:4px solid #6abf40;border-radius:6px;padding:8px 12px;margin-bottom:8px;">
+              <div style="font-size:12px;font-weight:800;color:#365a24;letter-spacing:0.5px;text-transform:uppercase;">
+                ${format(new Date(`${date}T12:00:00`), "EEEE d. MMMM yyyy", { locale: cs })}
               </div>
-              <div style="font-size:13px;color:#374151;">${escapeHtml(c.comment)}</div>
             </div>
+            ${comments
+              .sort(
+                (a, b) =>
+                  getMealOrder(a.meal) - getMealOrder(b.meal) ||
+                  new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+              )
+              .map(
+                (c) => `
+              <div style="display:flex;gap:0;background:#f9fafb;border-radius:8px;overflow:hidden;border:1px solid #e5e7eb;margin-bottom:8px;">
+                <div style="width:4px;background:${getRatingBar(c.rating)};flex-shrink:0;"></div>
+                <div style="flex:1;padding:10px 14px;">
+                  <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:4px;">
+                    <div>
+                      <div style="font-weight:700;font-size:13px;color:#1f2937;">${getMealName(c.meal)}</div>
+                      ${
+                        c.mealName
+                          ? `<div style="font-size:11px;color:#6b7280;margin-top:2px;">${escapeHtml(c.mealName)}</div>`
+                          : ""
+                      }
+                    </div>
+                    <span style="font-size:11px;font-weight:600;color:${getRatingColor(c.rating)};background:${getRatingBg(c.rating)};padding:2px 8px;border-radius:999px;white-space:nowrap;">
+                      ${getRatingLabel(c.rating)}
+                    </span>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;gap:12px;">
+                    <div style="font-size:13px;color:#374151;">${escapeHtml(c.comment)}</div>
+                    <span style="font-size:11px;color:#9ca3af;white-space:nowrap;">${format(new Date(c.createdAt), "HH:mm", { locale: cs })}</span>
+                  </div>
+                </div>
+              </div>`
+              )
+              .join("")}
           </div>`
           )
           .join("");

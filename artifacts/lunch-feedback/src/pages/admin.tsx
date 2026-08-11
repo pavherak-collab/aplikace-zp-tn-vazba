@@ -5,7 +5,6 @@ import ReportHistory from "@/components/report-history";
 import MenuSync from "@/components/menu-sync";
 import EmailSettings from "@/components/email-settings";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -34,6 +33,31 @@ export default function Admin() {
   const getMealName = (meal: string) => {
     return meal === "obed1" ? "Oběd 1" : meal === "obed2" ? "Oběd 2" : meal;
   };
+
+  const mealOrder = (meal: string) => {
+    if (meal === "obed1") return 1;
+    if (meal === "obed2") return 2;
+    return 3;
+  };
+
+  const groupedFeedback = feedback
+    ? Object.entries(
+        feedback.reduce<Record<string, NonNullable<typeof feedback>[number][]>>((groups, item) => {
+          const dayKey = format(new Date(item.createdAt), "yyyy-MM-dd");
+          (groups[dayKey] ??= []).push(item);
+          return groups;
+        }, {})
+      )
+        .sort(([dateA], [dateB]) => dateB.localeCompare(dateA))
+        .map(([date, items]) => [
+          date,
+          [...items].sort(
+            (a, b) =>
+              mealOrder(a.meal) - mealOrder(b.meal) ||
+              new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+          ),
+        ] as const)
+    : [];
 
   // Prepare chart data based on stats
   const chartData = stats?.map(stat => ({
@@ -178,44 +202,61 @@ export default function Admin() {
                 <p className="text-muted-foreground">Ještě nikdo neohodnotil žádný oběd.</p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader className="bg-muted/50">
-                    <TableRow>
-                      <TableHead className="w-[180px]">Datum a čas</TableHead>
-                      <TableHead>Oběd</TableHead>
-                      <TableHead>Hodnocení</TableHead>
-                      <TableHead className="min-w-[300px]">Komentář</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {feedback.map((item) => (
-                      <TableRow key={item.id}>
-                        <TableCell className="text-muted-foreground font-medium whitespace-nowrap" data-testid={`text-feedback-date-${item.id}`}>
-                          {format(new Date(item.createdAt), "d. MMMM yyyy, HH:mm", { locale: cs })}
-                        </TableCell>
-                        <TableCell className="font-semibold" data-testid={`text-feedback-meal-${item.id}`}>
-                          <div>{getMealName(item.meal)}</div>
-                          {item.mealName && (
-                            <div className="mt-1 text-sm font-normal text-muted-foreground whitespace-normal">
-                              {item.mealName}
+              <div className="space-y-4 p-4 sm:p-6">
+                {groupedFeedback.map(([date, items]) => (
+                  <Card key={date} className="border shadow-sm overflow-hidden">
+                    <CardHeader className="py-4 px-5 bg-muted/30 border-b">
+                      <CardTitle className="text-base sm:text-lg font-bold uppercase tracking-wide">
+                        {format(new Date(`${date}T12:00:00`), "EEEE d. MMMM yyyy", { locale: cs })}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                      <div className="divide-y">
+                        {items.map((item) => (
+                          <div
+                            key={item.id}
+                            className="px-5 py-4"
+                            data-testid={`feedback-day-item-${item.id}`}
+                          >
+                            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                              <div className="min-w-0">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <span
+                                    className="font-semibold"
+                                    data-testid={`text-feedback-meal-${item.id}`}
+                                  >
+                                    {getMealName(item.meal)}
+                                  </span>
+                                  {getRatingBadge(item.rating)}
+                                </div>
+                                {item.mealName && (
+                                  <div className="mt-1 text-sm text-muted-foreground">
+                                    {item.mealName}
+                                  </div>
+                                )}
+                              </div>
+                              <time
+                                className="shrink-0 text-xs font-medium text-muted-foreground"
+                                dateTime={item.createdAt}
+                                data-testid={`text-feedback-date-${item.id}`}
+                              >
+                                {format(new Date(item.createdAt), "HH:mm", { locale: cs })}
+                              </time>
                             </div>
-                          )}
-                        </TableCell>
-                        <TableCell data-testid={`text-feedback-rating-${item.id}`}>
-                          {getRatingBadge(item.rating)}
-                        </TableCell>
-                        <TableCell className="text-muted-foreground max-w-md truncate" data-testid={`text-feedback-comment-${item.id}`}>
-                          {item.comment ? (
-                            <span>{item.comment}</span>
-                          ) : (
-                            <span className="italic opacity-50">Bez komentáře</span>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                            <p
+                              className={`mt-3 text-sm leading-relaxed ${
+                                item.comment ? "text-foreground" : "text-muted-foreground italic"
+                              }`}
+                              data-testid={`text-feedback-comment-${item.id}`}
+                            >
+                              {item.comment || "Bez komentáře"}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
             )}
           </Card>

@@ -87,6 +87,14 @@ paths:
       operationId: getFeedbackStats
       tags: [feedback]
       summary: Get aggregated feedback stats per meal
+      parameters:
+        - name: date
+          in: query
+          required: false
+          description: "Limit statistics to a specific date in YYYY-MM-DD format"
+          schema:
+            type: string
+            format: date
       responses:
         "200":
           description: Stats per meal

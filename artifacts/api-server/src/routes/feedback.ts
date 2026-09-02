@@ -153,7 +153,13 @@ router.get("/feedback/weekly-report", async (req, res): Promise<void> => {
 });
 
 router.get("/feedback/stats", async (req, res): Promise<void> => {
-  const rows = await db
+  const date = typeof req.query.date === "string" ? req.query.date : undefined;
+  if (date && !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    res.status(400).json({ error: "date must use YYYY-MM-DD format" });
+    return;
+  }
+
+  const query = db
     .select({
       meal: feedbackTable.meal,
       positive: sql<number>`cast(count(*) filter (where ${feedbackTable.rating} = 'positive') as int)`,
@@ -162,6 +168,12 @@ router.get("/feedback/stats", async (req, res): Promise<void> => {
       total: sql<number>`cast(count(*) as int)`,
     })
     .from(feedbackTable)
+    .$dynamic();
+
+  const filteredQuery = date
+    ? query.where(sql`(${feedbackTable.createdAt} AT TIME ZONE 'Europe/Prague')::date = ${date}`)
+    : query;
+  const rows = await filteredQuery
     .groupBy(feedbackTable.meal)
     .orderBy(feedbackTable.meal);
 

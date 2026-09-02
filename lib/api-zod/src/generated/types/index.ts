@@ -13,6 +13,7 @@ export * from './emailLog';
 export * from './emailSettings';
 export * from './feedback';
 export * from './feedbackRating';
+export * from './getFeedbackStatsParams';
 export * from './getMenusParams';
 export * from './healthStatus';
 export * from './listFeedbackParams';

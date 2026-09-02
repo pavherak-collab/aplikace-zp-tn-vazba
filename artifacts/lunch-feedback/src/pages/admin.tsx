@@ -1,4 +1,5 @@
-import { useListFeedback, useGetFeedbackStats } from "@workspace/api-client-react";
+import { useState } from "react";
+import { useListFeedback, useGetFeedbackStats, useGetMenus } from "@workspace/api-client-react";
 import PinGuard from "@/components/pin-guard";
 import WeeklyReport from "@/components/weekly-report";
 import ReportHistory from "@/components/report-history";
@@ -8,15 +9,48 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend, Cell } from "recharts";
+import { BarChart, Bar, PieChart, Pie, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend, Cell } from "recharts";
 import { Link } from "wouter";
 import { format } from "date-fns";
 import { cs } from "date-fns/locale";
 import { ArrowLeft, ChefHat, Frown, Meh, Smile, LogOut } from "lucide-react";
 import { FeedbackRating } from "@workspace/api-client-react";
 
+const DAILY_MEALS = ["obed1", "obed2"] as const;
+
+const DAILY_RATINGS = [
+  { key: "positive", label: "Chutnalo", color: "#22c55e", icon: Smile },
+  { key: "neutral", label: "Neutrální", color: "#eab308", icon: Meh },
+  { key: "negative", label: "Nechutnalo", color: "#ef4444", icon: Frown },
+] as const;
+
+function getPragueToday() {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Prague",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+}
+
+function getCurrentWeekDates() {
+  const today = new Date(`${getPragueToday()}T12:00:00`);
+  const day = today.getDay();
+  const monday = new Date(today);
+  monday.setDate(today.getDate() - (day === 0 ? 6 : day - 1));
+
+  return Array.from({ length: 7 }, (_, index) => {
+    const date = new Date(monday);
+    date.setDate(monday.getDate() + index);
+    return format(date, "yyyy-MM-dd");
+  });
+}
+
 export default function Admin() {
+  const [selectedDate, setSelectedDate] = useState(getPragueToday);
   const { data: stats, isLoading: isLoadingStats } = useGetFeedbackStats();
+  const { data: dailyStats, isLoading: isLoadingDailyStats } = useGetFeedbackStats({ date: selectedDate });
+  const { data: selectedDayMenus, isLoading: isLoadingDayMenus } = useGetMenus({ date: selectedDate });
   const { data: feedback, isLoading: isLoadingFeedback } = useListFeedback();
 
   const getRatingBadge = (rating: FeedbackRating) => {
@@ -67,6 +101,26 @@ export default function Admin() {
     "Negativní": stat.negative,
     total: stat.total
   })) || [];
+
+  const dayStats = DAILY_MEALS.map((meal) => {
+    const stat = dailyStats?.find((item) => item.meal === meal);
+    const menu = selectedDayMenus?.find((item) => item.mealType === meal);
+    const total = stat?.total ?? 0;
+    return {
+      meal,
+      mealLabel: getMealName(meal),
+      mealName: menu?.name ?? null,
+      total,
+      ratings: DAILY_RATINGS.map((rating) => ({
+        ...rating,
+        count: stat?.[rating.key] ?? 0,
+        percent: total === 0 ? 0 : Math.round(((stat?.[rating.key] ?? 0) / total) * 100),
+      })),
+    };
+  });
+
+  const isLoadingDaily = isLoadingDailyStats || isLoadingDayMenus;
+  const weekDates = getCurrentWeekDates();
 
   return (
     <PinGuard>
@@ -177,6 +231,120 @@ export default function Admin() {
               </CardContent>
             </Card>
           )}
+
+          <Card className="border-0 shadow-md overflow-hidden">
+            <CardHeader className="bg-muted/30 border-b flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <CardTitle>Detail podle dne</CardTitle>
+                <CardDescription>
+                  Výsledky hodnocení pro vybraný den a jednotlivé obědy
+                </CardDescription>
+              </div>
+              <div className="flex items-center gap-3">
+                <label htmlFor="stats-date" className="text-sm font-medium whitespace-nowrap">
+                  Vyberte den
+                </label>
+                <select
+                  id="stats-date"
+                  value={selectedDate}
+                  onChange={(event) => setSelectedDate(event.target.value)}
+                  className="h-10 rounded-md border border-input bg-background px-3 text-sm font-medium shadow-sm outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  data-testid="select-stats-date"
+                >
+                  {weekDates.map((date) => (
+                    <option key={date} value={date}>
+                      {format(new Date(`${date}T12:00:00`), "EEEE d. MMMM yyyy", { locale: cs })}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </CardHeader>
+            <CardContent className="p-5 sm:p-6">
+              {isLoadingDaily ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <Skeleton className="h-[310px] rounded-xl" />
+                  <Skeleton className="h-[310px] rounded-xl" />
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {dayStats.map((meal) => {
+                    const pieData = meal.ratings.map((rating) => ({
+                      name: rating.label,
+                      value: rating.count,
+                      color: rating.color,
+                    }));
+
+                    return (
+                      <Card key={meal.meal} className="border bg-card shadow-sm">
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-lg">{meal.mealLabel}</CardTitle>
+                          {meal.mealName ? (
+                            <CardDescription className="text-sm">{meal.mealName}</CardDescription>
+                          ) : (
+                            <CardDescription className="text-sm italic">
+                              Název jídla pro tento den není k dispozici
+                            </CardDescription>
+                          )}
+                        </CardHeader>
+                        <CardContent>
+                          <div className="grid grid-cols-[150px_1fr] items-center gap-4">
+                            <div className="h-[150px]">
+                              {meal.total === 0 ? (
+                                <div className="h-full flex items-center justify-center rounded-full border-[18px] border-muted text-center text-xs text-muted-foreground">
+                                  Bez hodnocení
+                                </div>
+                              ) : (
+                                <ResponsiveContainer width="100%" height="100%">
+                                  <PieChart>
+                                    <Pie
+                                      data={pieData}
+                                      cx="50%"
+                                      cy="50%"
+                                      innerRadius={38}
+                                      outerRadius={64}
+                                      paddingAngle={3}
+                                      dataKey="value"
+                                    >
+                                      {pieData.map((entry) => (
+                                        <Cell key={entry.name} fill={entry.color} />
+                                      ))}
+                                    </Pie>
+                                    <RechartsTooltip
+                                      formatter={(value: number, name: string) => [`${value} ${value === 1 ? "hlas" : "hlasů"}`, name]}
+                                      contentStyle={{ borderRadius: "8px", border: "none", boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)" }}
+                                    />
+                                  </PieChart>
+                                </ResponsiveContainer>
+                              )}
+                            </div>
+                            <div className="space-y-3">
+                              {meal.ratings.map((rating) => {
+                                const RatingIcon = rating.icon;
+                                return (
+                                  <div key={rating.key} className="flex items-center justify-between gap-3 text-sm">
+                                    <div className="flex items-center gap-2">
+                                      <RatingIcon className="w-4 h-4" style={{ color: rating.color }} />
+                                      <span className="font-medium">{rating.label}</span>
+                                    </div>
+                                    <span className="text-muted-foreground whitespace-nowrap">
+                                      <strong className="text-foreground">{rating.count}</strong> · {rating.percent}%
+                                    </span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                          <div className="mt-4 border-t pt-3 text-xs text-muted-foreground">
+                            Celkem hodnocení: <span className="font-semibold text-foreground">{meal.total}</span>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </section>
 
         {/* Feedback List Section */}

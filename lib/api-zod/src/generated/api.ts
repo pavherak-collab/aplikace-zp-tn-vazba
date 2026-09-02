@@ -75,6 +75,10 @@ export const GetWeeklyReportResponse = zod.object({
 /**
  * @summary Get aggregated feedback stats per meal
  */
+export const GetFeedbackStatsQueryParams = zod.object({
+  "date": zod.date().optional().describe('Limit statistics to a specific date in YYYY-MM-DD format')
+})
+
 export const GetFeedbackStatsResponseItem = zod.object({
   "meal": zod.string(),
   "positive": zod.number(),

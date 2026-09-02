@@ -171,6 +171,13 @@ export type ListFeedbackParams = {
 meal?: string;
 };
 
+export type GetFeedbackStatsParams = {
+/**
+ * Limit statistics to a specific date in YYYY-MM-DD format
+ */
+date?: string;
+};
+
 export type GetMenusParams = {
 /**
  * Date in YYYY-MM-DD format, defaults to today

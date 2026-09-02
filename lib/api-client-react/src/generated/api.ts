@@ -25,6 +25,7 @@ import type {
   EmailLog,
   EmailSettings,
   Feedback,
+  GetFeedbackStatsParams,
   GetMenusParams,
   HealthStatus,
   ListFeedbackParams,
@@ -361,20 +362,27 @@ export function useGetWeeklyReport<TData = Awaited<ReturnType<typeof getWeeklyRe
 
 
 
-export const getGetFeedbackStatsUrl = () => {
+export const getGetFeedbackStatsUrl = (params?: GetFeedbackStatsParams,) => {
+  const normalizedParams = new URLSearchParams();
 
+  Object.entries(params || {}).forEach(([key, value]) => {
 
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
 
+  const stringifiedParams = normalizedParams.toString();
 
-  return `/api/feedback/stats`
+  return stringifiedParams.length > 0 ? `/api/feedback/stats?${stringifiedParams}` : `/api/feedback/stats`
 }
 
 /**
  * @summary Get aggregated feedback stats per meal
  */
-export const getFeedbackStats = async ( options?: RequestInit): Promise<MealStats[]> => {
+export const getFeedbackStats = async (params?: GetFeedbackStatsParams, options?: RequestInit): Promise<MealStats[]> => {
 
-  return customFetch<MealStats[]>(getGetFeedbackStatsUrl(),
+  return customFetch<MealStats[]>(getGetFeedbackStatsUrl(params),
   {
     ...options,
     method: 'GET'
@@ -387,23 +395,23 @@ export const getFeedbackStats = async ( options?: RequestInit): Promise<MealStat
 
 
 
-export const getGetFeedbackStatsQueryKey = () => {
+export const getGetFeedbackStatsQueryKey = (params?: GetFeedbackStatsParams,) => {
     return [
-    `/api/feedback/stats`
+    `/api/feedback/stats`, ...(params ? [params] : [])
     ] as const;
     }
 
 
-export const getGetFeedbackStatsQueryOptions = <TData = Awaited<ReturnType<typeof getFeedbackStats>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getFeedbackStats>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+export const getGetFeedbackStatsQueryOptions = <TData = Awaited<ReturnType<typeof getFeedbackStats>>, TError = ErrorType<unknown>>(params?: GetFeedbackStatsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getFeedbackStats>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getGetFeedbackStatsQueryKey();
+  const queryKey =  queryOptions?.queryKey ?? getGetFeedbackStatsQueryKey(params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getFeedbackStats>>> = ({ signal }) => getFeedbackStats({ signal, ...requestOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getFeedbackStats>>> = ({ signal }) => getFeedbackStats(params, { signal, ...requestOptions });
 
 
 
@@ -421,11 +429,11 @@ export type GetFeedbackStatsQueryError = ErrorType<unknown>
  */
 
 export function useGetFeedbackStats<TData = Awaited<ReturnType<typeof getFeedbackStats>>, TError = ErrorType<unknown>>(
-  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getFeedbackStats>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+ params?: GetFeedbackStatsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getFeedbackStats>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
 
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
-  const queryOptions = getGetFeedbackStatsQueryOptions(options)
+  const queryOptions = getGetFeedbackStatsQueryOptions(params,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

@@ -72,7 +72,7 @@ export default function MenuSync() {
         invalidate();
         toast({
           title: "Chyba synchronizace",
-          description: "Strava.cz není dostupná. Zadejte jídelníček ručně.",
+          description: "Stránka ZŠS Aš není dostupná. Zadejte jídelníček ručně.",
           variant: "destructive",
         });
       },
@@ -184,7 +184,7 @@ export default function MenuSync() {
               data-testid="button-sync-menu"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${syncMenus.isPending ? "animate-spin" : ""}`} />
-              {syncMenus.isPending ? "Synchronizuji…" : "Sync Strava.cz"}
+              {syncMenus.isPending ? "Synchronizuji…" : "Sync ZŠS Aš"}
             </Button>
           </div>
         </div>
@@ -349,7 +349,11 @@ export default function MenuSync() {
                     )}
                     <div className="flex-1 min-w-0">
                       <span className="font-medium">
-                        {entry.source === "manual" ? "Ruční zadání" : "Strava.cz sync"}
+                         {entry.source === "manual"
+                           ? "Ruční zadání"
+                           : entry.source === "zss-as"
+                             ? "ZŠS Aš sync"
+                             : "Strava.cz sync (starší)"}
                       </span>
                       {!entry.error && (
                         <span className="ml-1 opacity-70">· {entry.synced} pokrmů</span>

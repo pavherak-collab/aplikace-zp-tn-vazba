@@ -1,7 +1,7 @@
 import cron from "node-cron";
 import { logger } from "./logger";
 import { generateAndStoreWeeklyReport } from "./report-generator";
-import { syncMenusToDb } from "./strava-sync";
+import { syncMenusToDb } from "./zss-as-sync";
 import { sendWeeklyReportEmail } from "./email-service";
 import { db, emailSettingsTable } from "@workspace/db";
 
@@ -35,16 +35,16 @@ export function startScheduler() {
     { timezone: "Europe/Prague" }
   );
 
-  // Sync today's menu from Strava.cz every weekday at 07:00
+  // Sync the current week's menu from ZŠS Aš every weekday at 07:00
   cron.schedule(
     "0 7 * * 1-5",
     async () => {
-      logger.info("Scheduler: syncing menus from Strava.cz");
+      logger.info("Scheduler: syncing menus from ZŠS Aš");
       try {
         const count = await syncMenusToDb();
         logger.info({ count }, "Scheduler: menu sync complete");
       } catch (err) {
-        logger.error({ err }, "Scheduler: failed to sync menus from Strava.cz");
+        logger.error({ err }, "Scheduler: failed to sync menus from ZŠS Aš");
       }
     },
     { timezone: "Europe/Prague" }

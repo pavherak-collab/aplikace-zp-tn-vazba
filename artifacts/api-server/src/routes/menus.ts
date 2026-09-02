@@ -1,7 +1,7 @@
 import { Router, type IRouter } from "express";
 import { eq, desc } from "drizzle-orm";
 import { db, menusTable, syncLogsTable } from "@workspace/db";
-import { syncMenusToDb } from "../lib/strava-sync";
+import { syncMenusToDb } from "../lib/zss-as-sync";
 
 const router: IRouter = Router();
 
@@ -52,7 +52,7 @@ router.post("/menus/sync", async (req, res): Promise<void> => {
   }
 
   await db.insert(syncLogsTable).values({
-    source: "strava",
+    source: "zss-as",
     synced,
     error: errorMsg,
   });
@@ -62,7 +62,7 @@ router.post("/menus/sync", async (req, res): Promise<void> => {
     return;
   }
 
-  res.json({ synced, message: `Načteno ${synced} pokrmů ze Strava.cz` });
+  res.json({ synced, message: `Načteno ${synced} položek jídelníčku ze stránky ZŠS Aš` });
 });
 
 router.post("/menus/upsert", async (req, res): Promise<void> => {

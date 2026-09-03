@@ -1,12 +1,27 @@
 import { db, emailSettingsTable, emailLogsTable, weeklyReportsTable } from "@workspace/db";
 import type { WeeklyReport, MealBreakdownItem, TopComment } from "@workspace/db";
 import { desc } from "drizzle-orm";
+import { existsSync } from "node:fs";
 import { logger } from "./logger";
 
 // ── PDF generation (pdfkit) ──────────────────────────────────────────────────
 
+function resolvePdfFont(fileName: string): string {
+  const candidates = [
+    `/usr/share/fonts/truetype/dejavu/${fileName}`,
+    `/usr/share/fonts/truetype/liberation2/${fileName}`,
+  ];
+  const fontPath = candidates.find((candidate) => existsSync(candidate));
+  if (!fontPath) {
+    throw new Error(`PDF font ${fileName} was not found`);
+  }
+  return fontPath;
+}
+
 async function generateReportPdf(report: WeeklyReport): Promise<Buffer> {
   const PDFDocument = (await import("pdfkit")).default;
+  const regularFont = resolvePdfFont("DejaVuSans.ttf");
+  const boldFont = resolvePdfFont("DejaVuSans-Bold.ttf");
 
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({ margin: 50, size: "A4" });
@@ -22,9 +37,9 @@ async function generateReportPdf(report: WeeklyReport): Promise<Buffer> {
     // Header
     doc
       .fontSize(20)
-      .font("Helvetica-Bold")
+      .font(boldFont)
       .text("Tydeni prehled skolnich obedu", { align: "center" });
-    doc.fontSize(12).font("Helvetica").moveDown(0.5);
+    doc.fontSize(12).font(regularFont).moveDown(0.5);
     doc
       .text(`Tyden od: ${report.weekStart}`, { align: "center" })
       .text(`Vygenerovano: ${new Date(report.generatedAt).toLocaleString("cs-CZ")}`, { align: "center" });
@@ -32,8 +47,8 @@ async function generateReportPdf(report: WeeklyReport): Promise<Buffer> {
     doc.moveDown().moveTo(50, doc.y).lineTo(545, doc.y).stroke().moveDown();
 
     // Summary
-    doc.fontSize(14).font("Helvetica-Bold").text("Souhrn");
-    doc.fontSize(11).font("Helvetica").moveDown(0.3);
+    doc.fontSize(14).font(boldFont).text("Souhrn");
+    doc.fontSize(11).font(regularFont).moveDown(0.3);
     doc.text(`Celkovy pocet hodnoceni: ${report.totalFeedback}`);
     doc.text(
       `Pozitivni: ${report.positiveCount} (${pct(report.positiveCount, report.totalFeedback)})`
@@ -53,11 +68,11 @@ async function generateReportPdf(report: WeeklyReport): Promise<Buffer> {
     const breakdown = (report.mealBreakdown ?? []) as MealBreakdownItem[];
     if (breakdown.length > 0) {
       doc.moveDown().moveTo(50, doc.y).lineTo(545, doc.y).stroke().moveDown();
-      doc.fontSize(14).font("Helvetica-Bold").text("Hodnoceni dle obeda");
-      doc.fontSize(11).font("Helvetica").moveDown(0.3);
+       doc.fontSize(14).font(boldFont).text("Hodnoceni dle obeda");
+       doc.fontSize(11).font(regularFont).moveDown(0.3);
       for (const item of breakdown) {
-        doc.font("Helvetica-Bold").text(mealLabel(item.meal), { continued: false });
-        doc.font("Helvetica").text(
+         doc.font(boldFont).text(mealLabel(item.meal), { continued: false });
+         doc.font(regularFont).text(
           `  Celkem: ${item.total}  |  Pozitivni: ${item.positive} (${pct(item.positive, item.total)})  |  Neutralni: ${item.neutral} (${pct(item.neutral, item.total)})  |  Negativni: ${item.negative} (${pct(item.negative, item.total)})`
         );
       }
@@ -67,8 +82,8 @@ async function generateReportPdf(report: WeeklyReport): Promise<Buffer> {
     const comments = (report.topComments ?? []) as TopComment[];
     if (comments.length > 0) {
       doc.moveDown().moveTo(50, doc.y).lineTo(545, doc.y).stroke().moveDown();
-      doc.fontSize(14).font("Helvetica-Bold").text("Nejcastejsi komentare");
-      doc.fontSize(11).font("Helvetica").moveDown(0.3);
+       doc.fontSize(14).font(boldFont).text("Nejcastejsi komentare");
+       doc.fontSize(11).font(regularFont).moveDown(0.3);
       for (const c of comments.slice(0, 5)) {
         doc.text(`"${c.text}" (${mealLabel(c.meal)}, ${c.count}x)`);
       }
@@ -207,33 +222,49 @@ export async function sendWeeklyReportEmail(
     ? "[TEST] Týdenní přehled školních obědů"
     : "Týdenní přehled školních obědů";
 
-  let pdfBuffer: Buffer | null = null;
+  let pdfBuffer: Buffer;
   try {
     pdfBuffer = await generateReportPdf(report);
+    if (pdfBuffer.length === 0 || pdfBuffer.subarray(0, 5).toString("ascii") !== "%PDF-") {
+      throw new Error("Vygenerovaný soubor není platné PDF");
+    }
   } catch (pdfErr) {
-    logger.error({ pdfErr }, "PDF generation failed — sending email without attachment");
+    const errorMessage = `PDF se nepodařilo vygenerovat: ${(pdfErr as Error).message}`;
+    logger.error({ pdfErr }, "PDF generation failed — email not sent");
+    await db.insert(emailLogsTable).values({
+      recipients: recipientList.join(", "),
+      status: "failure",
+      error: errorMessage,
+      weekStart: report.weekStart,
+    });
+    return {
+      success: false,
+      message: "PDF se nepodařilo vygenerovat, e-mail nebyl odeslán.",
+      error: errorMessage,
+    };
   }
 
-  const attachments = pdfBuffer
-    ? [
-        {
-          filename: `tydenni-prehled-obedu-${report.weekStart}.pdf`,
-          content: pdfBuffer,
-        },
-      ]
-    : [];
+  const attachments = [
+    {
+      filename: `tydenni-prehled-obedu-${report.weekStart}.pdf`,
+      content: pdfBuffer,
+    },
+  ];
 
   let status: "success" | "failure" = "success";
   let errorMsg: string | undefined;
 
   try {
-    await resend.emails.send({
+    const { error: resendError } = await resend.emails.send({
       from: settings.fromAddress,
       to: recipientList,
       subject,
       html: buildEmailHtml(report),
       attachments,
     });
+    if (resendError) {
+      throw new Error(resendError.message);
+    }
     logger.info({ recipients: recipientList, weekStart: report.weekStart }, "Email sent");
   } catch (err) {
     status = "failure";

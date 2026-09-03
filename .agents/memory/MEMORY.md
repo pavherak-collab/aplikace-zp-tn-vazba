@@ -1,0 +1,1 @@
+- [PDFKit runtime bundling](pdfkit-runtime-bundling.md) — PDFKit musí zůstat externí v API buildu kvůli runtime CJS závislostem fontkitu.

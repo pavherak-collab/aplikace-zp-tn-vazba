@@ -28,6 +28,9 @@ async function buildAll() {
     // - uses native modules and loads them dynamically (e.g. sharp)
     // - use path traversal to read files (e.g. @google-cloud/secret-manager loads sibling .proto files)
     external: [
+      // pdfkit's fontkit dependency uses runtime CJS requires that do not work
+      // reliably when bundled into the server ESM output.
+      "pdfkit",
       "*.node",
       "sharp",
       "better-sqlite3",

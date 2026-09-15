@@ -1,0 +1,9 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "aplikace-zpetna-vazba",
+  "compatibility_date": "2026-09-15",
+  "assets": {
+    "directory": "./dist/public",
+    "not_found_handling": "single-page-application"
+  }
+}

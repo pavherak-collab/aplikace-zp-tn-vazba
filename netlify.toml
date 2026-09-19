@@ -1,10 +1,11 @@
 [build]
-  base = "artifacts/lunch-feedback"
-  command = "pnpm build"
-  publish = "dist/public"
+  command = "pnpm --filter @workspace/lunch-feedback build"
+  publish = "artifacts/lunch-feedback/dist/public"
 
 [functions]
-  directory = "../../netlify/functions"
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+  external_node_modules = ["express"]
 
 [[redirects]]
   from = "/api/*"

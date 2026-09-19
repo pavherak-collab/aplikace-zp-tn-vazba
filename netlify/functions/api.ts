@@ -1,7 +1,4 @@
+import serverless from "serverless-http";
 import app from "../../artifacts/api-server/src/app";
 
-export const config = {
-  path: "/api/*",
-};
-
-export default app;
+export const handler = serverless(app);

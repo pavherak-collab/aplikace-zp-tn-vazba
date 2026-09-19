@@ -156,6 +156,10 @@ overrides:
 importers:
 
   .:
+    dependencies:
+      serverless-http:
+        specifier: ^3.2.0
+        version: 3.2.0
     devDependencies:
       prettier:
         specifier: ^3.8.3

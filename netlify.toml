@@ -5,6 +5,7 @@
 [functions]
   directory = "netlify/functions"
   node_bundler = "esbuild"
+  external_node_modules = ["express", "pino", "pino-http", "cors", "serverless-http"]
 
 [[redirects]]
   from = "/api/*"

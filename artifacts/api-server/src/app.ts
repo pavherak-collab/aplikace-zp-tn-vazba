@@ -32,10 +32,4 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use("/api", router);
 
-if (process.env.NETLIFY !== "true") {
-  import("./lib/scheduler").then(({ startScheduler }) => {
-    startScheduler();
-  });
-}
-
 export default app;

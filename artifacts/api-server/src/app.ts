@@ -3,7 +3,6 @@ import cors from "cors";
 import pinoHttp from "pino-http";
 import router from "./routes";
 import { logger } from "./lib/logger";
-import { startScheduler } from "./lib/scheduler";
 
 const app: Express = express();
 
@@ -26,6 +25,7 @@ app.use(
     },
   }),
 );
+
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -33,6 +33,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/api", router);
 
 if (process.env.NETLIFY !== "true") {
+  const { startScheduler } = await import("./lib/scheduler");
   startScheduler();
 }
 

@@ -75,57 +75,57 @@ function extractMealsFromPage(html: string): ParsedMeal[] {
   const root = parseHtml(html);
   const meals: ParsedMeal[] = [];
 
-  /*
-   * ZŠS Aš currently renders the weekly menu as a sequence
-   * of weekday/date headings followed by:
-   *
-   * 1 | Hlavní jídlo | ...
-   * 2 | Hlavní jídlo | ...
-   *
-   * We intentionally don't depend on a specific CSS class.
-   */
+  const tables = root.querySelectorAll("table");
 
-  const textNodes = root
-    .querySelectorAll("body *")
-    .map((element) => normalizeText(element.text))
-    .filter(Boolean);
+  for (const table of tables) {
+    const header = table.querySelector("tr th");
 
-  let currentDate: string | null = null;
+    if (!header) continue;
 
-  for (const text of textNodes) {
-    const dayInfo = getDayInfo(text);
-
-    if (dayInfo) {
-      currentDate = dayInfo.date;
-      continue;
-    }
-
-    if (!currentDate) continue;
-
-    const mealMatch = text.match(
-      /^([12])\s+Hlavní jídlo\s+(.+?)(?:\s+\d+(?:,\s*\d+)*)?$/,
+    const headerText = normalizeText(header.text);
+    const date = parseCzechDate(
+      header.getAttribute("title") ?? headerText,
     );
 
-    if (!mealMatch) continue;
+    if (!date) continue;
 
-    const mealType = getMealType(mealMatch[1]);
+    const weekday = headerText
+      .toLocaleLowerCase("cs-CZ")
+      .split(/\s+/)[0];
 
-    if (!mealType) continue;
+    if (!WEEKDAYS.has(weekday)) continue;
 
-    const name = normalizeText(mealMatch[2]);
+    for (const row of table.querySelectorAll("tr")) {
+      const mealType = getMealType(
+        row.querySelector("th")?.text ?? "",
+      );
 
-    if (!name) continue;
+      if (!mealType) continue;
 
-    meals.push({
-      date: currentDate,
-      mealType,
-      name,
-    });
+      const category = normalizeText(
+        row.querySelector("small")?.text ?? "",
+      ).toLocaleLowerCase("cs-CZ");
+
+      if (category !== "hlavní jídlo") continue;
+
+      const cells = row.querySelectorAll("td");
+
+      const name = normalizeText(
+        cells.at(-1)?.text ?? "",
+      );
+
+      if (!name) continue;
+
+      meals.push({
+        date,
+        mealType,
+        name,
+      });
+    }
   }
 
   return meals;
 }
-
 export async function fetchZssAsMenu(): Promise<ParsedMeal[]> {
   logger.info(
     { url: ZSS_AS_MENU_URL },

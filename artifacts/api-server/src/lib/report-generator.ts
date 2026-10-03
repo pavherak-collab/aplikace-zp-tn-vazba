@@ -67,15 +67,31 @@ export async function generateAndStoreWeeklyReport(weekFrom?: Date) {
   });
 
   let bestMeal: string | null = null;
-  let worstMeal: string | null = null;
-  if (mealBreakdown.length > 0) {
-    const sorted = [...mealBreakdown].sort(
-      (a, b) => b.positive / (b.total || 1) - a.positive / (a.total || 1)
-    );
-    bestMeal = sorted[0].meal;
-    worstMeal = sorted[sorted.length - 1].meal;
-    if (bestMeal === worstMeal) worstMeal = null;
+let worstMeal: string | null = null;
+
+if (mealBreakdown.length > 0) {
+  const sorted = [...mealBreakdown].sort(
+    (a, b) =>
+      b.positive / (b.total || 1) - a.positive / (a.total || 1)
+  );
+
+  const bestRows = weekRows.filter((r) => r.meal === sorted[0].meal);
+  const worstRows = weekRows.filter(
+    (r) => r.meal === sorted[sorted.length - 1].meal
+  );
+
+  bestMeal =
+    bestRows.find((r) => r.mealName?.trim())?.mealName?.trim() ||
+    sorted[0].meal;
+
+  worstMeal =
+    worstRows.find((r) => r.mealName?.trim())?.mealName?.trim() ||
+    sorted[sorted.length - 1].meal;
+
+  if (sorted[0].meal === sorted[sorted.length - 1].meal) {
+    worstMeal = null;
   }
+}
 
   const topComments = extractTopComments(weekRows);
 

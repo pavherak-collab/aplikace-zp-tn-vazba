@@ -6,16 +6,13 @@ import { logger } from "./logger";
 
 // ── PDF generation (pdfkit) ──────────────────────────────────────────────────
 
-function resolvePdfFont(fileName: string): string {
+function resolvePdfFont(fileName: string): string | null {
   const candidates = [
     `/usr/share/fonts/truetype/dejavu/${fileName}`,
     `/usr/share/fonts/truetype/liberation2/${fileName}`,
   ];
-  const fontPath = candidates.find((candidate) => existsSync(candidate));
-  if (!fontPath) {
-    throw new Error(`PDF font ${fileName} was not found`);
-  }
-  return fontPath;
+
+  return candidates.find((candidate) => existsSync(candidate)) ?? null;
 }
 
 async function generateReportPdf(report: WeeklyReport): Promise<Buffer> {

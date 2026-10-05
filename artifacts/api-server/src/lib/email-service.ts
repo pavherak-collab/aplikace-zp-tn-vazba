@@ -34,9 +34,9 @@ async function generateReportPdf(report: WeeklyReport): Promise<Buffer> {
     // Header
     doc
       .fontSize(20)
-      .font(boldFont)
+     .font(boldFont ?? "Helvetica-Bold")
       .text("Tydeni prehled skolnich obedu", { align: "center" });
-    doc.fontSize(12).font(regularFont).moveDown(0.5);
+   doc.fontSize(12).font(regularFont ?? "Helvetica").moveDown(0.5);
     doc
       .text(`Tyden od: ${report.weekStart}`, { align: "center" })
       .text(`Vygenerovano: ${new Date(report.generatedAt).toLocaleString("cs-CZ")}`, { align: "center" });
@@ -44,8 +44,8 @@ async function generateReportPdf(report: WeeklyReport): Promise<Buffer> {
     doc.moveDown().moveTo(50, doc.y).lineTo(545, doc.y).stroke().moveDown();
 
     // Summary
-    doc.fontSize(14).font(boldFont).text("Souhrn");
-    doc.fontSize(11).font(regularFont).moveDown(0.3);
+   doc.fontSize(14).font(boldFont ?? "Helvetica-Bold").text("Souhrn");
+    doc.fontSize(11).font(regularFont ?? "Helvetica").moveDown(0.3);
     doc.text(`Celkovy pocet hodnoceni: ${report.totalFeedback}`);
     doc.text(
       `Pozitivni: ${report.positiveCount} (${pct(report.positiveCount, report.totalFeedback)})`
@@ -65,11 +65,11 @@ async function generateReportPdf(report: WeeklyReport): Promise<Buffer> {
     const breakdown = (report.mealBreakdown ?? []) as MealBreakdownItem[];
     if (breakdown.length > 0) {
       doc.moveDown().moveTo(50, doc.y).lineTo(545, doc.y).stroke().moveDown();
-       doc.fontSize(14).font(boldFont).text("Hodnoceni dle obeda");
-       doc.fontSize(11).font(regularFont).moveDown(0.3);
+      doc.fontSize(14).font(boldFont ?? "Helvetica-Bold").text("Hodnoceni dle obeda");
+     doc.fontSize(11).font(regularFont ?? "Helvetica").moveDown(0.3);
       for (const item of breakdown) {
-         doc.font(boldFont).text(mealLabel(item.meal), { continued: false });
-         doc.font(regularFont).text(
+       doc.font(boldFont ?? "Helvetica-Bold").text(mealLabel(item.meal), { continued: false });
+       doc.font(regularFont ?? "Helvetica").text(
           `  Celkem: ${item.total}  |  Pozitivni: ${item.positive} (${pct(item.positive, item.total)})  |  Neutralni: ${item.neutral} (${pct(item.neutral, item.total)})  |  Negativni: ${item.negative} (${pct(item.negative, item.total)})`
         );
       }
@@ -79,8 +79,8 @@ async function generateReportPdf(report: WeeklyReport): Promise<Buffer> {
     const comments = (report.topComments ?? []) as TopComment[];
     if (comments.length > 0) {
       doc.moveDown().moveTo(50, doc.y).lineTo(545, doc.y).stroke().moveDown();
-       doc.fontSize(14).font(boldFont).text("Nejcastejsi komentare");
-       doc.fontSize(11).font(regularFont).moveDown(0.3);
+       doc.fontSize(14).font(boldFont ?? "Helvetica-Bold").text("Nejcastejsi komentare");
+      doc.fontSize(11).font(regularFont ?? "Helvetica").moveDown(0.3);
       for (const c of comments.slice(0, 5)) {
         doc.text(`"${c.text}" (${mealLabel(c.meal)}, ${c.count}x)`);
       }

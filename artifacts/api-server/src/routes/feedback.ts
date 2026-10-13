@@ -20,7 +20,12 @@ function getPragueDate(): string {
 }
 
 router.post("/feedback", async (req, res): Promise<void> => {
-  const parsed = CreateFeedbackBody.safeParse(req.body);
+ req.log.info(
+  { body: req.body, contentType: req.headers["content-type"] },
+  "Feedback request body received"
+);
+
+const parsed = CreateFeedbackBody.safeParse(req.body);
   if (!parsed.success) {
     req.log.warn({ errors: parsed.error.message }, "Invalid feedback body");
     res.status(400).json({ error: parsed.error.message });

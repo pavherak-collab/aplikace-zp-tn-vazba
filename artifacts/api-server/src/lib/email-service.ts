@@ -2,12 +2,16 @@ import { db, emailSettingsTable, emailLogsTable, weeklyReportsTable } from "@wor
 import type { WeeklyReport, MealBreakdownItem, TopComment } from "@workspace/db";
 import { desc } from "drizzle-orm";
 import { existsSync } from "node:fs";
+import { resolve } from "node:path";
 import { logger } from "./logger";
 
 // ── PDF generation (pdfkit) ──────────────────────────────────────────────────
 
 function resolvePdfFont(fileName: string): string | null {
   const candidates = [
+    resolve(process.cwd(), "data", fileName),
+    resolve(process.cwd(), "netlify/functions/data", fileName),
+    resolve(process.cwd(), "../../netlify/functions/data", fileName),
     `/usr/share/fonts/truetype/dejavu/${fileName}`,
     `/usr/share/fonts/truetype/liberation2/${fileName}`,
   ];

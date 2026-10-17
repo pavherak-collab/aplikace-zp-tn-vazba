@@ -21,7 +21,10 @@ async function generateReportPdf(report: WeeklyReport): Promise<Buffer> {
   const boldFont = resolvePdfFont("DejaVuSans-Bold.ttf");
 
   return new Promise((resolve, reject) => {
-    const doc = new PDFDocument({ margin: 50, size: "A4" });
+    // Set the embedded Unicode font during construction. PDFKit otherwise
+    // initializes Helvetica immediately and tries to read its AFM data from
+    // the function bundle directory before a later doc.font(...) call.
+    const doc = new PDFDocument({ margin: 50, size: "A4", font: regularFont });
     const chunks: Buffer[] = [];
     doc.on("data", (c: Buffer) => chunks.push(c));
     doc.on("end", () => resolve(Buffer.concat(chunks)));

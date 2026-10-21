@@ -3,7 +3,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Delete } from "lucide-react";
 
-const ADMIN_PINS = ["330496", "017839"];
+const ADMIN_PIN = "330496";
+const SECOND_ADMIN_PIN = "017839";
 const SESSION_KEY = "admin_unlocked";
 
 interface PinGuardProps {
@@ -15,6 +16,7 @@ export default function PinGuard({ children }: PinGuardProps) {
     () => sessionStorage.getItem(SESSION_KEY) === "true"
   );
   const [entered, setEntered] = useState("");
+  const [secondPinRequired, setSecondPinRequired] = useState(false);
   const [error, setError] = useState(false);
 
   if (unlocked) {
@@ -28,9 +30,18 @@ export default function PinGuard({ children }: PinGuardProps) {
     setError(false);
 
     if (next.length === 6) {
-      if (ADMIN_PINS.includes(next)) {
-        sessionStorage.setItem(SESSION_KEY, "true");
-        setUnlocked(true);
+      const isCorrectPin = secondPinRequired
+        ? next === SECOND_ADMIN_PIN
+        : next === ADMIN_PIN;
+
+      if (isCorrectPin) {
+        if (secondPinRequired) {
+          sessionStorage.setItem(SESSION_KEY, "true");
+          setUnlocked(true);
+        } else {
+          setEntered("");
+          setSecondPinRequired(true);
+        }
       } else {
         setError(true);
         setTimeout(() => {
@@ -63,8 +74,12 @@ export default function PinGuard({ children }: PinGuardProps) {
       <Card className="w-full max-w-xs border-0 shadow-xl bg-white/90 backdrop-blur-sm z-10">
         <CardContent className="pt-8 pb-8 px-8 flex flex-col items-center gap-6">
           <div className="text-center">
-            <h2 className="text-2xl font-bold text-foreground">Přihlášení správce</h2>
-            <p className="text-muted-foreground text-sm mt-1">Zadejte PIN pro přístup</p>
+            <h2 className="text-2xl font-bold text-foreground">
+              {secondPinRequired ? "Druhé ověření" : "Přihlášení správce"}
+            </h2>
+            <p className="text-muted-foreground text-sm mt-1">
+              {secondPinRequired ? "Zadejte druhý ověřovací PIN" : "Zadejte PIN pro přístup"}
+            </p>
           </div>
 
           <div className="flex gap-3" data-testid="pin-dots">

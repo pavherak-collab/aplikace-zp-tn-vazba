@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Delete } from "lucide-react";
 
-const ADMIN_PIN = "123456";
+const ADMIN_PINS = ["330496", "017839"];
 const SESSION_KEY = "admin_unlocked";
 
 interface PinGuardProps {
@@ -28,7 +28,7 @@ export default function PinGuard({ children }: PinGuardProps) {
     setError(false);
 
     if (next.length === 6) {
-      if (next === ADMIN_PIN) {
+      if (ADMIN_PINS.includes(next)) {
         sessionStorage.setItem(SESSION_KEY, "true");
         setUnlocked(true);
       } else {

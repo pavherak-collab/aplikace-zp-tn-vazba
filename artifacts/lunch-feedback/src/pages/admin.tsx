@@ -6,6 +6,7 @@ import ReportHistory from "@/components/report-history";
 import MenuSync from "@/components/menu-sync";
 import EmailSettings from "@/components/email-settings";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -13,7 +14,7 @@ import { BarChart, Bar, PieChart, Pie, XAxis, YAxis, CartesianGrid, Tooltip as R
 import { Link } from "wouter";
 import { format } from "date-fns";
 import { cs } from "date-fns/locale";
-import { ArrowLeft, ChefHat, Frown, Meh, Smile, LogOut } from "lucide-react";
+import { ArrowLeft, ChefHat, Frown, Meh, Smile, LogOut, ChevronDown, ChevronUp } from "lucide-react";
 import { FeedbackRating } from "@workspace/api-client-react";
 
 const DAILY_MEALS = ["obed1", "obed2"] as const;
@@ -48,6 +49,7 @@ function getCurrentWeekDates() {
 
 export default function Admin() {
   const [selectedDate, setSelectedDate] = useState(getPragueToday);
+  const [commentsExpanded, setCommentsExpanded] = useState(false);
   const { data: stats, isLoading: isLoadingStats } = useGetFeedbackStats();
   const { data: dailyStats, isLoading: isLoadingDailyStats } = useGetFeedbackStats({ date: selectedDate });
   const { data: selectedDayMenus, isLoading: isLoadingDayMenus } = useGetMenus({ date: selectedDate });
@@ -351,9 +353,29 @@ export default function Admin() {
         <section>
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold tracking-tight">Všechna hodnocení</h2>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              aria-expanded={commentsExpanded}
+              aria-controls="admin-feedback-content"
+              onClick={() => setCommentsExpanded((expanded) => !expanded)}
+              data-testid="button-toggle-comments"
+            >
+              {commentsExpanded ? "Skrýt komentáře" : "Zobrazit komentáře"}
+              {commentsExpanded ? (
+                <ChevronUp className="ml-2 h-4 w-4" />
+              ) : (
+                <ChevronDown className="ml-2 h-4 w-4" />
+              )}
+            </Button>
           </div>
 
-          <Card className="border-0 shadow-md overflow-hidden">
+          <Card
+            id="admin-feedback-content"
+            hidden={!commentsExpanded}
+            className="border-0 shadow-md overflow-hidden"
+          >
             {isLoadingFeedback ? (
               <div className="p-8 space-y-4">
                 <Skeleton className="h-10 w-full" />

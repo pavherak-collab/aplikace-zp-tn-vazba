@@ -7,6 +7,16 @@
   node_bundler = "esbuild"
   included_files = ["netlify/functions/data/*.ttf"]
 
+[functions."menu-sync"]
+  external_node_modules = [
+    "node-html-parser",
+    "pino",
+    "drizzle-orm",
+    "pg",
+    "drizzle-zod",
+    "zod",
+  ]
+
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/api/:splat"

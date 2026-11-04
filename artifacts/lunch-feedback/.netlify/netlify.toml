@@ -1,0 +1,59 @@
+redirectsOrigin = "config"
+plugins = []
+functionsDirectory = "/home/runner/workspace/netlify/functions"
+functionsDirectoryOrigin = "config"
+headers = []
+
+[functions]
+
+[functions.menu-sync]
+external_node_modules = ["node-html-parser", "pino", "drizzle-orm", "pg", "drizzle-zod", "zod"]
+
+[functions."*"]
+included_files = ["netlify/functions/data/*.ttf"]
+node_bundler = "esbuild"
+
+[build]
+publish = "/home/runner/workspace/artifacts/lunch-feedback/dist/public"
+publishOrigin = "config"
+commandOrigin = "config"
+command = "pnpm --filter @workspace/lunch-feedback build"
+functions = "/home/runner/workspace/netlify/functions"
+
+[build.environment]
+
+[build.processing]
+
+[build.processing.css]
+
+[build.processing.html]
+
+[build.processing.images]
+
+[build.processing.js]
+
+[build.services]
+
+[[redirects]]
+from = "/api/*"
+to = "/.netlify/functions/api/:splat"
+status = 200.0
+force = false
+
+[redirects.query]
+
+[redirects.conditions]
+
+[redirects.headers]
+
+[[redirects]]
+from = "/*"
+to = "/index.html"
+status = 200.0
+force = false
+
+[redirects.query]
+
+[redirects.conditions]
+
+[redirects.headers]

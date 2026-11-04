@@ -40,7 +40,7 @@ catalogs:
       specifier: ^2.1.1
       version: 2.1.1
     drizzle-orm:
-      specifier: ^0.45.2
+      specifier: 0.45.2
       version: 0.45.2
     framer-motion:
       specifier: ^12.23.24
@@ -67,7 +67,7 @@ catalogs:
       specifier: ^7.3.2
       version: 7.3.3
     zod:
-      specifier: ^3.25.76
+      specifier: 3.25.76
       version: 3.25.76
 
 overrides:
@@ -157,9 +157,30 @@ importers:
 
   .:
     dependencies:
+      '@workspace/db':
+        specifier: workspace:*
+        version: link:lib/db
+      drizzle-orm:
+        specifier: 'catalog:'
+        version: 0.45.2(@types/pg@8.20.0)(pg@8.20.0)
+      drizzle-zod:
+        specifier: ^0.8.3
+        version: 0.8.3(drizzle-orm@0.45.2(@types/pg@8.20.0)(pg@8.20.0))(zod@3.25.76)
+      node-html-parser:
+        specifier: ^7.1.0
+        version: 7.1.0
+      pg:
+        specifier: ^8.20.0
+        version: 8.20.0
+      pino:
+        specifier: ^9.14.0
+        version: 9.14.0
       serverless-http:
         specifier: ^3.2.0
         version: 3.2.0
+      zod:
+        specifier: 'catalog:'
+        version: 3.25.76
     devDependencies:
       prettier:
         specifier: ^3.8.3

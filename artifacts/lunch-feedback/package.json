@@ -75,8 +75,14 @@
     "zod": "catalog:"
   },
   "dependencies": {
+    "@workspace/db": "workspace:*",
+    "drizzle-orm": "catalog:",
+    "drizzle-zod": "^0.8.3",
     "html2canvas": "^1.4.1",
     "jspdf": "^4.2.1",
+    "node-html-parser": "^7.1.0",
+    "pg": "^8.20.0",
+    "pino": "^9.14.0",
     "roboto-fontface": "^0.10.0"
   }
 }

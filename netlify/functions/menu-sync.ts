@@ -1,6 +1,6 @@
 import { syncMenusToDb } from "../../artifacts/api-server/src/lib/zss-as-sync";
 
-export default async () => {
+export const handler = async () => {
   const now = new Date();
 
   const parts = new Intl.DateTimeFormat("en-GB", {
@@ -27,8 +27,4 @@ export default async () => {
   const result = await syncMenusToDb();
 
   console.log(`MealPulse menu sync finished: ${result} menu(s) synced.`);
-};
-
-export const config = {
-  schedule: "0 5,6 * * 1-5",
 };
